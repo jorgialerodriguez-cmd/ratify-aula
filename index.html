@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ratify - Tu app de aula</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Pantalla 1: Selección de Perfiles -->
+    <div id="pantalla-perfiles" class="pantalla activa">
+        <h1>¿Quién está escuchando?</h1>
+        <div class="perfiles-container">
+            <div class="perfil" onclick="mostrarLoginProfesor()">
+                <img src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
+                <p>Profesor</p>
+            </div>
+            <div class="perfil" onclick="mostrarLoginPadres()">
+                <img src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="Padres">
+                <p>Familia</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla 2A: Login del Profesor -->
+    <div id="pantalla-login" class="pantalla">
+        <h2>Acceso Profesor</h2>
+        <input type="password" id="password-profe" placeholder="Contraseña">
+        <button onclick="entrarComoProfesor()">Entrar</button>
+        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+    </div>
+
+    <!-- Pantalla 2B: Login de Familias -->
+    <div id="pantalla-login-padres" class="pantalla">
+        <h2>Acceso Familias</h2>
+        <input type="password" id="password-padres" placeholder="Contraseña">
+        <button onclick="entrarComoPadre()">Entrar</button>
+        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+    </div>
+
+    <!-- Pantalla 3: Aplicación Principal -->
+    <div id="pantalla-app" class="pantalla">
+        <header>
+            <h2 id="titulo-seccion">Ratonera FM</h2>
+            <button id="btn-subir" style="display: none;"><i class="fas fa-plus"></i> Subir Audio</button>
+        </header>
+
+        <main id="lista-reproduccion">
+            <!-- Los audios se cargarán aquí -->
+        </main>
+
+        <!-- Reproductor de Audio Flotante -->
+        <div id="reproductor">
+            <div class="info-pista">
+                <div class="portada-cancion"><i class="fas fa-music"></i></div>
+                <div class="textos-cancion">
+                    <h4 id="track-title">Selecciona un audio</h4>
+                    <p id="track-artist">Ratify</p>
+                </div>
+            </div>
+            <div class="controles-player">
+                <i class="fas fa-step-backward" style="font-size: 16px;"></i>
+                <i class="fas fa-play-circle play-btn" id="btn-play"></i>
+                <i class="fas fa-step-forward" style="font-size: 16px;"></i>
+            </div>
+        </div>
+
+        <!-- Menú Inferior -->
+        <nav id="menu-inferior">
+            <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')">
+                <i class="fas fa-podcast"></i>
+                <span>Ratonera FM</span>
+            </div>
+            <div class="tab" onclick="cambiarSeccion('DJ Rufi')">
+                <i class="fas fa-compact-disc"></i>
+                <span>DJ Rufi</span>
+            </div>
+            <div class="tab" onclick="cambiarSeccion('Episodios Especiales')">
+                <i class="fas fa-star"></i>
+                <span>Especiales</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- FIREBASE: Aquí pegarás tu configuración real más adelante -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+      
+        // REEMPLAZA ESTO CON LO QUE TE DÉ FIREBASE EN EL PASO 2
+        const firebaseConfig = {
+          apiKey: "TU_API_KEY",
+          authDomain: "ratify-colegio.firebaseapp.com",
+          projectId: "ratify-colegio",
+          storageBucket: "ratify-colegio.appspot.com",
+          messagingSenderId: "TU_SENDER_ID",
+          appId: "TU_APP_ID"
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.storage = getStorage(app);
+        window.collection = collection;
+        window.getDocs = getDocs;
+      </script>
+
+    <script src="app.js"></script>
+</body>
+</html>

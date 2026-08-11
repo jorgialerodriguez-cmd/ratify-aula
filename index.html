@@ -76,7 +76,6 @@
             <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')">
                 <i class="fas fa-podcast"></i><span>Ratonera FM</span>
             </div>
-            <!-- CAMBIO AQUÍ: Ahora es solo "Hits" -->
             <div class="tab" onclick="cambiarSeccion('Hits')">
                 <i class="fas fa-compact-disc"></i><span>Hits</span>
             </div>
@@ -86,12 +85,21 @@
         </nav>
     </div>
 
-    <!-- Pantalla 4: Reproductor Completo -->
+    <!-- Pantalla 4: Reproductor Completo (AQUÍ ESTÁ LA NUEVA BARRA) -->
     <div id="reproductor-completo" class="pantalla">
         <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
+        
         <img id="full-cover" src="" alt="Portada">
         <h2 id="full-title">Título</h2>
         <p id="full-date">Fecha</p>
+        
+        <!-- BARRA DE TIEMPO -->
+        <div class="progreso-container">
+            <span id="tiempo-actual">0:00</span>
+            <input type="range" id="barra-progreso" value="0" min="0" step="1">
+            <span id="tiempo-total">0:00</span>
+        </div>
+
         <div class="controles-grandes">
             <i class="fas fa-step-backward" onclick="playAnterior()"></i>
             <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
@@ -106,7 +114,6 @@
             <input type="text" id="upload-titulo" placeholder="Título del episodio">
             <select id="upload-seccion">
                 <option value="Ratonera FM">Ratonera FM</option>
-                <!-- CAMBIO AQUÍ: Hits en el desplegable -->
                 <option value="Hits">Hits</option>
                 <option value="Episodios Especiales">Episodios Especiales</option>
             </select>
@@ -119,7 +126,7 @@
         </div>
     </div>
 
-    <!-- Modal de Ajustes (Solo Profe) -->
+    <!-- Modal de Ajustes -->
     <div id="modal-ajustes" class="modal">
         <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
             <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
@@ -156,7 +163,6 @@
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
-        // ¡REEMPLAZA ESTO CON TUS CLAVES (Acuérdate del storageBucket correcto)!
         const firebaseConfig = {
           apiKey: "TU_API_KEY",
           authDomain: "ratify-colegio.firebaseapp.com",

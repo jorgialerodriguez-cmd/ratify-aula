@@ -3,52 +3,46 @@ let listaAudiosActual = [];
 let indiceAudioActual = -1;
 const audioReal = document.getElementById('audio-elemento');
 
-// Configuración por defecto (Se sobrescribe con lo de Firebase)
+// Elementos de la barra de progreso
+const barraProgreso = document.getElementById('barra-progreso');
+const tiempoActualText = document.getElementById('tiempo-actual');
+const tiempoTotalText = document.getElementById('tiempo-total');
+
+// Configuración por defecto
 let configApp = {
     passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150",
     passPadres: "ratones2026", nombrePadres: "Familia", imgPadres: "https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150"
 };
 
-// Cargar ajustes desde Firebase al abrir la app
+// Cargar ajustes desde Firebase
 window.addEventListener('load', async () => {
-    // Esperamos 1 segundo para que Firebase se inicialice bien
     setTimeout(async () => {
         try {
             const docSnap = await window.getDoc(window.doc(window.db, "configuracion", "general"));
             if (docSnap.exists()) {
-                const data = docSnap.data();
-                configApp = { ...configApp, ...data };
-                
-                // Actualizar interfaz visual
+                configApp = { ...configApp, ...docSnap.data() };
                 document.getElementById('nombre-profe-ui').innerText = configApp.nombreProfe;
                 document.getElementById('img-profe-ui').src = configApp.imgProfe;
                 document.getElementById('nombre-padres-ui').innerText = configApp.nombrePadres;
                 document.getElementById('img-padres-ui').src = configApp.imgPadres;
-                
                 document.getElementById('titulo-login-profe').innerText = "Acceso " + configApp.nombreProfe;
                 document.getElementById('titulo-login-padres').innerText = "Acceso " + configApp.nombrePadres;
             }
-        } catch(e) { console.log("Cargando config por defecto"); }
+        } catch(e) {}
     }, 1000);
 });
 
 // Navegación Básica
-function mostrarPantalla(id) {
-    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-    document.getElementById(id).classList.add('activa');
-}
+function mostrarPantalla(id) { document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa')); document.getElementById(id).classList.add('activa'); }
 function mostrarLoginProfesor() { document.getElementById('password-profe').value = ''; mostrarPantalla('pantalla-login'); }
 function mostrarLoginPadres() { document.getElementById('password-padres').value = ''; mostrarPantalla('pantalla-login-padres'); }
 function volverAPerfiles() { mostrarPantalla('pantalla-perfiles'); }
 
 function entrarComoPadre() {
-    if(document.getElementById('password-padres').value === configApp.passPadres) { esProfesor = false; iniciarApp(); } 
-    else { alert("Contraseña incorrecta."); }
+    if(document.getElementById('password-padres').value === configApp.passPadres) { esProfesor = false; iniciarApp(); } else { alert("Contraseña incorrecta."); }
 }
-
 function entrarComoProfesor() {
-    if(document.getElementById('password-profe').value === configApp.passProfe) { esProfesor = true; iniciarApp(); } 
-    else { alert("Contraseña incorrecta"); }
+    if(document.getElementById('password-profe').value === configApp.passProfe) { esProfesor = true; iniciarApp(); } else { alert("Contraseña incorrecta"); }
 }
 
 function iniciarApp() {
@@ -58,20 +52,12 @@ function iniciarApp() {
     cambiarSeccion('Ratonera FM');
 }
 
-function cerrarSesion() {
-    audioReal.pause();
-    document.getElementById('reproductor').style.display = 'none';
-    cerrarModalAjustes();
-    volverAPerfiles();
-}
+function cerrarSesion() { audioReal.pause(); document.getElementById('reproductor').style.display = 'none'; cerrarModalAjustes(); volverAPerfiles(); }
 
 // Cargar lista desde Firebase
 async function cambiarSeccion(seccion) {
     document.getElementById('titulo-seccion').innerText = seccion;
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('activo');
-        if(tab.innerText.includes(seccion)) tab.classList.add('activo');
-    });
+    document.querySelectorAll('.tab').forEach(tab => { tab.classList.remove('activo'); if(tab.innerText.includes(seccion)) tab.classList.add('activo'); });
 
     const contenedor = document.getElementById('lista-reproduccion');
     contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Buscando episodios...</p>'; 
@@ -80,25 +66,18 @@ async function cambiarSeccion(seccion) {
         const querySnapshot = await window.getDocs(window.collection(window.db, "episodios"));
         contenedor.innerHTML = ''; 
         listaAudiosActual = [];
-
-        querySnapshot.forEach((doc) => {
-            const audio = doc.data();
-            audio.id = doc.id; // Guardamos el ID para poder borrarlo luego
-            if (audio.seccion === seccion) listaAudiosActual.push(audio);
-        });
+        querySnapshot.forEach((doc) => { const audio = doc.data(); audio.id = doc.id; if (audio.seccion === seccion) listaAudiosActual.push(audio); });
 
         if (listaAudiosActual.length === 0) {
             contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Aún no hay episodios subidos aquí.</p>';
             return;
         }
 
-        // Pintar la lista con o sin papelera
         listaAudiosActual.forEach((audio, index) => {
             const item = document.createElement('div');
             item.className = 'item-audio';
             const portadaUrl = audio.url_portada || 'https://via.placeholder.com/150/181818/1DB954?text=Ratify';
             
-            // Si es profe, mostramos la papelera
             let botonesHtml = `<i class="fas fa-play" style="color: var(--spotify-green);"></i>`;
             if(esProfesor) {
                 botonesHtml = `
@@ -118,36 +97,43 @@ async function cambiarSeccion(seccion) {
             item.onclick = () => reproducirAudio(index);
             contenedor.appendChild(item);
         });
-
-    } catch (error) {
-        console.error("Error: ", error);
-        contenedor.innerHTML = '<p style="text-align:center; color: red;">Error conectando a Firebase.</p>';
-    }
+    } catch (error) { contenedor.innerHTML = '<p style="text-align:center; color: red;">Error conectando a Firebase.</p>'; }
 }
 
-// NUEVO: Borrar Episodio
 async function borrarEpisodio(id, urlAudio, urlPortada) {
-    if(!confirm("¿Seguro que quieres eliminar este episodio de forma permanente?")) return;
-    
+    if(!confirm("¿Seguro que quieres eliminar este episodio permanentemente?")) return;
     try {
-        // Borrar el documento de texto
         await window.deleteDoc(window.doc(window.db, "episodios", id));
-        
-        // Borrar archivos de Storage
-        if(urlAudio) {
-            try { await window.deleteObject(window.ref(window.storage, urlAudio)); } catch(e){}
-        }
-        if(urlPortada) {
-            try { await window.deleteObject(window.ref(window.storage, urlPortada)); } catch(e){}
-        }
-        
-        alert("Episodio borrado correctamente");
-        cambiarSeccion(document.getElementById('titulo-seccion').innerText); // Recargar
-    } catch(error) {
-        console.error(error);
-        alert("Hubo un error al borrar. Comprueba tu conexión.");
-    }
+        if(urlAudio) { try { await window.deleteObject(window.ref(window.storage, urlAudio)); } catch(e){} }
+        if(urlPortada) { try { await window.deleteObject(window.ref(window.storage, urlPortada)); } catch(e){} }
+        alert("Episodio borrado.");
+        cambiarSeccion(document.getElementById('titulo-seccion').innerText);
+    } catch(error) { alert("Error al borrar."); }
 }
+
+// FORMATO DE TIEMPO (ej. convierte 125 segundos en "2:05")
+function formatearTiempo(segundos) {
+    if (isNaN(segundos)) return "0:00";
+    const min = Math.floor(segundos / 60);
+    const seg = Math.floor(segundos % 60);
+    return `${min}:${seg < 10 ? '0' : ''}${seg}`;
+}
+
+// LOGICA DE LA BARRA DE PROGRESO
+audioReal.addEventListener('loadedmetadata', () => {
+    barraProgreso.max = audioReal.duration;
+    tiempoTotalText.innerText = formatearTiempo(audioReal.duration);
+});
+
+audioReal.addEventListener('timeupdate', () => {
+    barraProgreso.value = audioReal.currentTime;
+    tiempoActualText.innerText = formatearTiempo(audioReal.currentTime);
+});
+
+// Cuando el usuario arrastra la barra, cambia el minuto de la canción
+barraProgreso.addEventListener('input', () => {
+    audioReal.currentTime = barraProgreso.value;
+});
 
 // Lógica de Reproducción
 function reproducirAudio(indice) {
@@ -162,6 +148,11 @@ function reproducirAudio(indice) {
     document.getElementById('full-date').innerText = audio.fecha;
     document.getElementById('full-cover').src = portadaUrl;
     document.getElementById('reproductor').style.display = 'flex';
+
+    // Reiniciar barra al cargar
+    barraProgreso.value = 0;
+    tiempoActualText.innerText = "0:00";
+    tiempoTotalText.innerText = "0:00";
 
     audioReal.src = audio.url_audio;
     audioReal.play();
@@ -227,9 +218,8 @@ async function ejecutarSubida() {
     } catch (e) { alert("Error al subir"); } finally { btn.innerText = "Subir a Firebase"; btn.disabled = false; }
 }
 
-// NUEVO: Ajustes
+// Ajustes
 function abrirModalAjustes() { 
-    // Rellenar formulario con la config actual
     document.getElementById('ajuste-nombre-profe').value = configApp.nombreProfe;
     document.getElementById('ajuste-img-profe').value = configApp.imgProfe;
     document.getElementById('ajuste-pass-profe').value = configApp.passProfe;
@@ -238,7 +228,6 @@ function abrirModalAjustes() {
     document.getElementById('ajuste-pass-padres').value = configApp.passPadres;
     document.getElementById('modal-ajustes').style.display = 'flex'; 
 }
-
 function cerrarModalAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
 
 async function guardarConfiguracion() {
@@ -246,23 +235,14 @@ async function guardarConfiguracion() {
     btn.innerText = "Guardando..."; btn.disabled = true;
 
     const nuevaConfig = {
-        nombreProfe: document.getElementById('ajuste-nombre-profe').value,
-        imgProfe: document.getElementById('ajuste-img-profe').value,
-        passProfe: document.getElementById('ajuste-pass-profe').value,
-        nombrePadres: document.getElementById('ajuste-nombre-padres').value,
-        imgPadres: document.getElementById('ajuste-img-padres').value,
-        passPadres: document.getElementById('ajuste-pass-padres').value
+        nombreProfe: document.getElementById('ajuste-nombre-profe').value, imgProfe: document.getElementById('ajuste-img-profe').value, passProfe: document.getElementById('ajuste-pass-profe').value,
+        nombrePadres: document.getElementById('ajuste-nombre-padres').value, imgPadres: document.getElementById('ajuste-img-padres').value, passPadres: document.getElementById('ajuste-pass-padres').value
     };
 
     try {
         await window.setDoc(window.doc(window.db, "configuracion", "general"), nuevaConfig);
-        alert("Ajustes guardados correctamente. Recarga la página para ver los cambios.");
+        alert("Ajustes guardados. Recarga la página para ver los cambios.");
         cerrarModalAjustes();
-        window.location.reload(); // Recargamos para aplicar todo
-    } catch(e) {
-        console.error(e);
-        alert("Error al guardar ajustes");
-    } finally {
-        btn.innerText = "Guardar Cambios"; btn.disabled = false;
-    }
+        window.location.reload(); 
+    } catch(e) { alert("Error al guardar ajustes"); } finally { btn.innerText = "Guardar Cambios"; btn.disabled = false; }
 }

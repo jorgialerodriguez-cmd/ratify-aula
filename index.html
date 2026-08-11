@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <!-- Pantalla 2A: Login del Profesor -->
+    <!-- Pantalla 2A: Login Profesor -->
     <div id="pantalla-login" class="pantalla">
         <h2>Acceso Profesor</h2>
         <input type="password" id="password-profe" placeholder="Contraseña">
@@ -32,7 +32,7 @@
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
 
-    <!-- Pantalla 2B: Login de Familias -->
+    <!-- Pantalla 2B: Login Familias -->
     <div id="pantalla-login-padres" class="pantalla">
         <h2>Acceso Familias</h2>
         <input type="password" id="password-padres" placeholder="Contraseña">
@@ -44,60 +44,89 @@
     <div id="pantalla-app" class="pantalla">
         <header>
             <h2 id="titulo-seccion">Ratonera FM</h2>
-            <button id="btn-subir" style="display: none;"><i class="fas fa-plus"></i> Subir Audio</button>
+            <button id="btn-subir" style="display: none;" onclick="abrirModalSubida()"><i class="fas fa-plus"></i> Subir Audio</button>
         </header>
 
         <main id="lista-reproduccion">
-            <!-- Los audios se cargarán aquí -->
+            <!-- Los audios se cargarán aquí desde Firebase -->
         </main>
 
-        <!-- Reproductor de Audio Flotante -->
-        <div id="reproductor">
+        <!-- Mini Reproductor Inferior (Flotante) -->
+        <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
             <div class="info-pista">
-                <div class="portada-cancion"><i class="fas fa-music"></i></div>
+                <img id="mini-cover" src="" alt="" class="portada-cancion" style="object-fit: cover;">
                 <div class="textos-cancion">
-                    <h4 id="track-title">Selecciona un audio</h4>
-                    <p id="track-artist">Ratify</p>
+                    <h4 id="mini-title">Selecciona un audio</h4>
+                    <p id="mini-date">Ratify</p>
                 </div>
             </div>
-            <div class="controles-player">
-                <i class="fas fa-step-backward" style="font-size: 16px;"></i>
-                <i class="fas fa-play-circle play-btn" id="btn-play"></i>
-                <i class="fas fa-step-forward" style="font-size: 16px;"></i>
+            <div class="controles-player" onclick="event.stopPropagation()">
+                <i class="fas fa-play-circle play-btn mini-btn-play" onclick="togglePlay()"></i>
             </div>
         </div>
 
-        <!-- Menú Inferior -->
         <nav id="menu-inferior">
             <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')">
-                <i class="fas fa-podcast"></i>
-                <span>Ratonera FM</span>
+                <i class="fas fa-podcast"></i><span>Ratonera FM</span>
             </div>
             <div class="tab" onclick="cambiarSeccion('DJ Rufi')">
-                <i class="fas fa-compact-disc"></i>
-                <span>DJ Rufi</span>
+                <i class="fas fa-compact-disc"></i><span>DJ Rufi</span>
             </div>
             <div class="tab" onclick="cambiarSeccion('Episodios Especiales')">
-                <i class="fas fa-star"></i>
-                <span>Especiales</span>
+                <i class="fas fa-star"></i><span>Especiales</span>
             </div>
         </nav>
     </div>
 
-    <!-- FIREBASE: Aquí pegarás tu configuración real más adelante -->
+    <!-- Pantalla 4: Reproductor Pantalla Completa -->
+    <div id="reproductor-completo" class="pantalla">
+        <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
+        <img id="full-cover" src="" alt="Portada">
+        <h2 id="full-title">Título</h2>
+        <p id="full-date">Fecha</p>
+        <div class="controles-grandes">
+            <i class="fas fa-step-backward" onclick="playAnterior()"></i>
+            <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
+            <i class="fas fa-step-forward" onclick="playSiguiente()"></i>
+        </div>
+    </div>
+
+    <!-- Modal de Subida de Archivos -->
+    <div id="modal-subida" class="modal">
+        <div class="modal-contenido">
+            <h3>Subir Nuevo Episodio</h3>
+            <input type="text" id="upload-titulo" placeholder="Título del episodio (ej. Noticias por ALEXANDER)">
+            
+            <label>Sección:</label>
+            <select id="upload-seccion">
+                <option value="Ratonera FM">Ratonera FM</option>
+                <option value="DJ Rufi">DJ Rufi</option>
+                <option value="Episodios Especiales">Episodios Especiales</option>
+            </select>
+
+            <label>Archivo de Audio (.mp3):</label>
+            <input type="file" id="upload-audio" accept="audio/*">
+            
+            <label>Foto de Portada:</label>
+            <input type="file" id="upload-portada" accept="image/*">
+            
+            <button onclick="ejecutarSubida()" id="btn-ejecutar-subida">Subir a Firebase</button>
+            <button class="btn-secundario" onclick="cerrarModalSubida()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Elemento de audio real (invisible) -->
+    <audio id="audio-elemento"></audio>
+
+    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
-        // REEMPLAZA ESTO CON LO QUE TE DÉ FIREBASE EN EL PASO 2
+        // RECUERDA PEGAR TUS CLAVES AQUÍ:
         const firebaseConfig = {
-          apiKey:  apiKey: "AIzaSyDmJkop94vxP_zGlMaKfYyQaGJguPWo22E",
-  authDomain: "ratify-colegio.firebaseapp.com",
-  projectId: "ratify-colegio",
-  storageBucket: "ratify-colegio.firebasestorage.app",
-  messagingSenderId: "189120916263",
-  appId: "1:189120916263:web:8ebf1f1b7e031abee65702"
+          apiKey: "TU_API_KEY",
           authDomain: "ratify-colegio.firebaseapp.com",
           projectId: "ratify-colegio",
           storageBucket: "ratify-colegio.appspot.com",
@@ -110,6 +139,10 @@
         window.storage = getStorage(app);
         window.collection = collection;
         window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.ref = ref;
+        window.uploadBytes = uploadBytes;
+        window.getDownloadURL = getDownloadURL;
       </script>
 
     <script src="app.js"></script>

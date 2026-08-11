@@ -11,22 +11,28 @@
 
     <!-- Pantalla 1: Selección de Perfiles -->
     <div id="pantalla-perfiles" class="pantalla activa">
-        <h1>¿Quién está escuchando?</h1>
+        <!-- Logo del quesito -->
+        <div style="display:flex; align-items:center; justify-content:center; gap: 15px; margin-bottom: 20px;">
+            <i class="fas fa-cheese" style="color: var(--spotify-green); font-size: 45px;"></i>
+            <h1 style="margin: 0;">Ratify</h1>
+        </div>
+        <h3 style="color: var(--text-sub); font-weight: normal;">¿Quién está escuchando?</h3>
+        
         <div class="perfiles-container">
             <div class="perfil" onclick="mostrarLoginProfesor()">
-                <img src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
-                <p>Profesor</p>
+                <img id="img-profe-ui" src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
+                <p id="nombre-profe-ui">Profesor</p>
             </div>
             <div class="perfil" onclick="mostrarLoginPadres()">
-                <img src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="Padres">
-                <p>Familia</p>
+                <img id="img-padres-ui" src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="Padres">
+                <p id="nombre-padres-ui">Familia</p>
             </div>
         </div>
     </div>
 
     <!-- Pantalla 2A: Login Profesor -->
     <div id="pantalla-login" class="pantalla">
-        <h2>Acceso Profesor</h2>
+        <h2 id="titulo-login-profe">Acceso Profesor</h2>
         <input type="password" id="password-profe" placeholder="Contraseña">
         <button onclick="entrarComoProfesor()">Entrar</button>
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
@@ -34,7 +40,7 @@
 
     <!-- Pantalla 2B: Login Familias -->
     <div id="pantalla-login-padres" class="pantalla">
-        <h2>Acceso Familias</h2>
+        <h2 id="titulo-login-padres">Acceso Familias</h2>
         <input type="password" id="password-padres" placeholder="Contraseña">
         <button onclick="entrarComoPadre()">Entrar</button>
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
@@ -43,15 +49,21 @@
     <!-- Pantalla 3: Aplicación Principal -->
     <div id="pantalla-app" class="pantalla">
         <header>
-            <h2 id="titulo-seccion">Ratonera FM</h2>
-            <button id="btn-subir" style="display: none;" onclick="abrirModalSubida()"><i class="fas fa-plus"></i> Subir Audio</button>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <i class="fas fa-cheese" style="color: var(--spotify-green); font-size: 24px;"></i>
+                <h2 id="titulo-seccion" style="margin:0;">Ratonera FM</h2>
+            </div>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <button id="btn-subir" style="display: none;" onclick="abrirModalSubida()"><i class="fas fa-plus"></i></button>
+                <button id="btn-ajustes" style="display: none; background: transparent; padding: 5px; width: auto;" onclick="abrirModalAjustes()"><i class="fas fa-cog" style="color: var(--text-sub); font-size: 20px;"></i></button>
+            </div>
         </header>
 
         <main id="lista-reproduccion">
-            <!-- Los audios se cargarán aquí desde Firebase -->
+            <!-- Los audios se cargarán aquí -->
         </main>
 
-        <!-- Mini Reproductor Inferior (Flotante) -->
+        <!-- Mini Reproductor Inferior -->
         <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
             <div class="info-pista">
                 <img id="mini-cover" src="" alt="" class="portada-cancion" style="object-fit: cover;">
@@ -78,7 +90,7 @@
         </nav>
     </div>
 
-    <!-- Pantalla 4: Reproductor Pantalla Completa -->
+    <!-- Pantalla 4: Reproductor Completo -->
     <div id="reproductor-completo" class="pantalla">
         <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
         <img id="full-cover" src="" alt="Portada">
@@ -91,61 +103,81 @@
         </div>
     </div>
 
-    <!-- Modal de Subida de Archivos -->
+    <!-- Modal de Subida -->
     <div id="modal-subida" class="modal">
         <div class="modal-contenido">
             <h3>Subir Nuevo Episodio</h3>
-            <input type="text" id="upload-titulo" placeholder="Título del episodio (ej. Noticias por ALEXANDER)">
-            
-            <label>Sección:</label>
+            <input type="text" id="upload-titulo" placeholder="Título del episodio">
             <select id="upload-seccion">
                 <option value="Ratonera FM">Ratonera FM</option>
                 <option value="DJ Rufi">DJ Rufi</option>
                 <option value="Episodios Especiales">Episodios Especiales</option>
             </select>
-
-            <label>Archivo de Audio (.mp3):</label>
+            <label>Audio (.mp3 o .m4a):</label>
             <input type="file" id="upload-audio" accept="audio/*">
-            
-            <label>Foto de Portada:</label>
+            <label>Portada (Imagen):</label>
             <input type="file" id="upload-portada" accept="image/*">
-            
             <button onclick="ejecutarSubida()" id="btn-ejecutar-subida">Subir a Firebase</button>
             <button class="btn-secundario" onclick="cerrarModalSubida()">Cancelar</button>
         </div>
     </div>
 
-    <!-- Elemento de audio real (invisible) -->
+    <!-- Modal de Ajustes (Solo Profe) -->
+    <div id="modal-ajustes" class="modal">
+        <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
+                <h3 style="margin:0;"><i class="fas fa-cog"></i> Ajustes</h3>
+                <button class="btn-secundario" style="width:auto; padding:5px 10px; margin:0;" onclick="cerrarSesion()">Cerrar sesión</button>
+            </div>
+            
+            <label>Nombre Perfil Profe:</label>
+            <input type="text" id="ajuste-nombre-profe">
+            <label>URL Imagen Profe:</label>
+            <input type="text" id="ajuste-img-profe">
+            <label>Contraseña Profe:</label>
+            <input type="text" id="ajuste-pass-profe">
+
+            <hr style="border-color: #282828; margin: 15px 0;">
+
+            <label>Nombre Perfil Familias:</label>
+            <input type="text" id="ajuste-nombre-padres">
+            <label>URL Imagen Familias:</label>
+            <input type="text" id="ajuste-img-padres">
+            <label>Contraseña Familias:</label>
+            <input type="text" id="ajuste-pass-padres">
+
+            <button onclick="guardarConfiguracion()" id="btn-guardar-ajustes" style="margin-top:15px;">Guardar Cambios</button>
+            <button class="btn-secundario" onclick="cerrarModalAjustes()">Cancelar</button>
+        </div>
+    </div>
+
     <audio id="audio-elemento"></audio>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES ABAJO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
-        // RECUERDA PEGAR TUS CLAVES AQUÍ:
-     const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "ratify-colegio.firebaseapp.com",
-  projectId: "ratify-colegio",
-  // ESTA ES LA LÍNEA CLAVE QUE TIENES QUE AÑADIR O CAMBIAR:
-  storageBucket: "ratify-colegio.firebasestorage.app", 
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
-};
+        // ¡REEMPLAZA ESTO CON TUS CLAVES (Acuérdate del storageBucket correcto)!
+        const firebaseConfig = {
+          apiKey: "TU_API_KEY",
+          authDomain: "ratify-colegio.firebaseapp.com",
+          projectId: "ratify-colegio",
+          storageBucket: "ratify-colegio.firebasestorage.app", 
+          messagingSenderId: "TU_SENDER_ID",
+          appId: "TU_APP_ID"
+        };
       
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.storage = getStorage(app);
-        window.collection = collection;
-        window.getDocs = getDocs;
-        window.addDoc = addDoc;
-        window.ref = ref;
-        window.uploadBytes = uploadBytes;
-        window.getDownloadURL = getDownloadURL;
+        
+        // Hacemos globales las nuevas herramientas
+        window.collection = collection; window.getDocs = getDocs; window.addDoc = addDoc;
+        window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
+        window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
       </script>
-
     <script src="app.js"></script>
 </body>
 </html>

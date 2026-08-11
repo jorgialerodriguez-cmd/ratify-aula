@@ -125,14 +125,15 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
         // RECUERDA PEGAR TUS CLAVES AQUÍ:
-        const firebaseConfig = {
-          apiKey: "AIzaSy...",
-          authDomain: "ratify-colegio.firebaseapp.com",
-          projectId: "ratify-colegio",
-          storageBucket: "ratify-colegio.appspot.com", // <-- ¡Esta línea es vital para los audios!
-          messagingSenderId: "123456789",
-          appId: "1:123456789:web:abcde"
-        };
+     const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "ratify-colegio.firebaseapp.com",
+  projectId: "ratify-colegio",
+  // ESTA ES LA LÍNEA CLAVE QUE TIENES QUE AÑADIR O CAMBIAR:
+  storageBucket: "ratify-colegio.firebasestorage.app", 
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
       
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);

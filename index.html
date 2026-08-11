@@ -11,12 +11,7 @@
 
     <!-- Pantalla 1: Selección de Perfiles -->
     <div id="pantalla-perfiles" class="pantalla activa">
-        <!-- Logo del quesito -->
-        <div style="display:flex; align-items:center; justify-content:center; gap: 15px; margin-bottom: 20px;">
-            <i class="fas fa-cheese" style="color: var(--spotify-green); font-size: 45px;"></i>
-            <h1 style="margin: 0;">Ratify</h1>
-        </div>
-        <h3 style="color: var(--text-sub); font-weight: normal;">¿Quién está escuchando?</h3>
+        <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
         
         <div class="perfiles-container">
             <div class="perfil" onclick="mostrarLoginProfesor()">
@@ -81,8 +76,9 @@
             <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')">
                 <i class="fas fa-podcast"></i><span>Ratonera FM</span>
             </div>
-            <div class="tab" onclick="cambiarSeccion('DJ Rufi')">
-                <i class="fas fa-compact-disc"></i><span>DJ Rufi</span>
+            <!-- CAMBIO AQUÍ: Ahora es solo "Hits" -->
+            <div class="tab" onclick="cambiarSeccion('Hits')">
+                <i class="fas fa-compact-disc"></i><span>Hits</span>
             </div>
             <div class="tab" onclick="cambiarSeccion('Episodios Especiales')">
                 <i class="fas fa-star"></i><span>Especiales</span>
@@ -110,7 +106,8 @@
             <input type="text" id="upload-titulo" placeholder="Título del episodio">
             <select id="upload-seccion">
                 <option value="Ratonera FM">Ratonera FM</option>
-                <option value="DJ Rufi">DJ Rufi</option>
+                <!-- CAMBIO AQUÍ: Hits en el desplegable -->
+                <option value="Hits">Hits</option>
                 <option value="Episodios Especiales">Episodios Especiales</option>
             </select>
             <label>Audio (.mp3 o .m4a):</label>
@@ -173,7 +170,6 @@
         window.db = getFirestore(app);
         window.storage = getStorage(app);
         
-        // Hacemos globales las nuevas herramientas
         window.collection = collection; window.getDocs = getDocs; window.addDoc = addDoc;
         window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
         window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;

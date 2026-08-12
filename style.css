@@ -68,3 +68,21 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .modal-contenido h3 { margin-top: 0; }
 .modal-contenido select, .modal-contenido input[type="text"], .modal-contenido input[type="file"] { margin-bottom: 15px; padding: 12px; background: #282828; color: white; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; font-family: inherit;}
 .modal-contenido label { font-size: 13px; color: var(--spotify-green); margin-bottom: 5px; }
+/* ---- ETIQUETAS NUEVO Y LIKES ---- */
+.badge-nuevo {
+    background-color: var(--spotify-green);
+    color: black;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+.btn-like {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.btn-like:active {
+    transform: scale(1.3);
+}

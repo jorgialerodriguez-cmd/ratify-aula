@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratify - Tu app de aula</title>
     
-    <!-- CONEXIÓN PWA (App Instalable) -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <link rel="apple-touch-icon" href="logo.jpeg">
@@ -15,10 +15,9 @@
 </head>
 <body>
 
-    <!-- Pantalla 1: Selección de Perfiles (SIN LOGO) -->
+    <!-- Pantalla 1: Perfiles -->
     <div id="pantalla-perfiles" class="pantalla activa">
         <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
-        
         <div class="perfiles-container">
             <div class="perfil" onclick="mostrarLoginProfesor()">
                 <img id="img-profe-ui" src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
@@ -31,13 +30,15 @@
         </div>
     </div>
 
-    <!-- Pantalla 2A y 2B: Logins -->
+    <!-- Pantalla 2A: Login Profesor -->
     <div id="pantalla-login" class="pantalla">
         <h2 id="titulo-login-profe">Acceso Profesor</h2>
         <input type="password" id="password-profe" placeholder="Contraseña">
         <button onclick="entrarComoProfesor()">Entrar</button>
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
+
+    <!-- Pantalla 2B: Login Familias -->
     <div id="pantalla-login-padres" class="pantalla">
         <h2 id="titulo-login-padres">Acceso Familias</h2>
         <input type="password" id="password-padres" placeholder="Contraseña">
@@ -45,11 +46,10 @@
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
 
-    <!-- Pantalla 3: Aplicación Principal -->
+    <!-- Pantalla 3: App Principal -->
     <div id="pantalla-app" class="pantalla">
         <header>
             <div style="display:flex; align-items:center; gap: 10px;">
-                <!-- EL LOGO NUEVO AQUÍ -->
                 <img src="logo.jpeg" alt="Logo Ratify" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: white;">
                 <h2 id="titulo-seccion" style="margin:0;">Ratonera FM</h2>
             </div>
@@ -59,9 +59,7 @@
             </div>
         </header>
 
-        <main id="lista-reproduccion">
-            <!-- Audios -->
-        </main>
+        <main id="lista-reproduccion"></main>
 
         <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
             <div class="info-pista">
@@ -151,13 +149,13 @@
 
     <audio id="audio-elemento"></audio>
 
-    <!-- FIREBASE: ¡NO OLVIDES PEGAR TUS CLAVES AQUÍ ABAJO! -->
+    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        // Añadimos updateDoc e increment para los Likes
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
+        // ¡REEMPLAZA ESTO CON TUS CLAVES!
         const firebaseConfig = {
           apiKey: "TU_API_KEY",
           authDomain: "ratify-colegio.firebaseapp.com",
@@ -175,7 +173,7 @@
         window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
         window.updateDoc = updateDoc; window.increment = increment;
         window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
-      </script>
+    </script>
     <script src="app.js"></script>
 </body>
 </html>

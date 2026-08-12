@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratify - Tu app de aula</title>
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <link rel="apple-touch-icon" href="logo.jpeg">
@@ -59,6 +58,12 @@
             </div>
         </header>
 
+        <!-- NUEVO: Barra de controles (Ordenar y Aleatorio) -->
+        <div id="barra-controles" style="display: flex; justify-content: space-between; padding: 0 15px 10px 15px;">
+            <button id="btn-ordenar" onclick="toggleOrden()" class="btn-filtro"><i class="fas fa-sort-amount-down"></i> Más recientes</button>
+            <button id="btn-aleatorio-lista" onclick="toggleAleatorio()" class="btn-filtro" style="display: none;"><i class="fas fa-random"></i> Aleatorio</button>
+        </div>
+
         <main id="lista-reproduccion"></main>
 
         <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
@@ -95,9 +100,12 @@
         </div>
 
         <div class="controles-grandes">
+            <!-- NUEVO: Botón aleatorio también en el reproductor -->
+            <i class="fas fa-random" id="btn-aleatorio-player" onclick="toggleAleatorio()" style="font-size: 20px; color: var(--text-sub); transition: 0.2s;"></i>
             <i class="fas fa-step-backward" onclick="playAnterior()"></i>
             <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
             <i class="fas fa-step-forward" onclick="playSiguiente()"></i>
+            <i class="fas fa-redo" style="font-size: 20px; color: transparent;"></i> <!-- Invisible para equilibrar -->
         </div>
     </div>
 
@@ -149,13 +157,12 @@
 
     <audio id="audio-elemento"></audio>
 
-    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ -->
+    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ ABAJO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
-        // ¡REEMPLAZA ESTO CON TUS CLAVES!
         const firebaseConfig = {
           apiKey: "TU_API_KEY",
           authDomain: "ratify-colegio.firebaseapp.com",

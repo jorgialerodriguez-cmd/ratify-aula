@@ -1,6 +1,9 @@
 let esProfesor = false;
-let listaAudiosActual = []; 
+let episodiosBrutos = []; // Guarda los datos tal cual vienen de Firebase
+let listaAudiosActual = []; // Guarda la lista ya filtrada y ordenada
 let indiceAudioActual = -1;
+let ordenReciente = true; // Por defecto, los más nuevos primero
+let modoAleatorio = false;
 
 const audioReal = document.getElementById('audio-elemento');
 const barraProgreso = document.getElementById('barra-progreso');
@@ -8,7 +11,6 @@ const tiempoActualText = document.getElementById('tiempo-actual');
 const tiempoTotalText = document.getElementById('tiempo-total');
 
 let configApp = { passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150", passPadres: "ratones2026", nombrePadres: "Familia", imgPadres: "https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" };
-
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
 window.addEventListener('load', () => {
@@ -17,12 +19,9 @@ window.addEventListener('load', () => {
             const docSnap = await window.getDoc(window.doc(window.db, "configuracion", "general"));
             if (docSnap.exists()) {
                 configApp = { ...configApp, ...docSnap.data() };
-                document.getElementById('nombre-profe-ui').innerText = configApp.nombreProfe;
-                document.getElementById('img-profe-ui').src = configApp.imgProfe;
-                document.getElementById('nombre-padres-ui').innerText = configApp.nombrePadres;
-                document.getElementById('img-padres-ui').src = configApp.imgPadres;
-                document.getElementById('titulo-login-profe').innerText = "Acceso " + configApp.nombreProfe;
-                document.getElementById('titulo-login-padres').innerText = "Acceso " + configApp.nombrePadres;
+                document.getElementById('nombre-profe-ui').innerText = configApp.nombreProfe; document.getElementById('img-profe-ui').src = configApp.imgProfe;
+                document.getElementById('nombre-padres-ui').innerText = configApp.nombrePadres; document.getElementById('img-padres-ui').src = configApp.imgPadres;
+                document.getElementById('titulo-login-profe').innerText = "Acceso " + configApp.nombreProfe; document.getElementById('titulo-login-padres').innerText = "Acceso " + configApp.nombrePadres;
             }
         } catch(e) {}
     }, 1000);
@@ -32,7 +31,6 @@ function mostrarPantalla(id) { document.querySelectorAll('.pantalla').forEach(p 
 function mostrarLoginProfesor() { document.getElementById('password-profe').value = ''; mostrarPantalla('pantalla-login'); }
 function mostrarLoginPadres() { document.getElementById('password-padres').value = ''; mostrarPantalla('pantalla-login-padres'); }
 function volverAPerfiles() { mostrarPantalla('pantalla-perfiles'); }
-
 function entrarComoPadre() { if(document.getElementById('password-padres').value === configApp.passPadres) { esProfesor = false; iniciarApp(); } else { alert("Contraseña incorrecta."); } }
 function entrarComoProfesor() { if(document.getElementById('password-profe').value === configApp.passProfe) { esProfesor = true; iniciarApp(); } else { alert("Contraseña incorrecta"); } }
 
@@ -48,51 +46,93 @@ function cerrarSesion() { audioReal.pause(); document.getElementById('reproducto
 async function cambiarSeccion(seccion) {
     document.getElementById('titulo-seccion').innerText = seccion;
     document.querySelectorAll('.tab').forEach(tab => { tab.classList.remove('activo'); if(tab.innerText.includes(seccion)) tab.classList.add('activo'); });
+    
+    // Mostrar u ocultar el botón Aleatorio dependiendo de la sección
+    document.getElementById('btn-aleatorio-lista').style.display = (seccion === 'Hits') ? 'block' : 'none';
     const contenedor = document.getElementById('lista-reproduccion');
     contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Buscando episodios...</p>'; 
 
     try {
         const querySnapshot = await window.getDocs(window.collection(window.db, "episodios"));
-        contenedor.innerHTML = ''; listaAudiosActual = [];
-        querySnapshot.forEach((doc) => { const audio = doc.data(); audio.id = doc.id; if (audio.seccion === seccion) listaAudiosActual.push(audio); });
-        
-        listaAudiosActual.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        if (listaAudiosActual.length === 0) { contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Aún no hay episodios subidos aquí.</p>'; return; }
-
-        let misLikes = JSON.parse(localStorage.getItem('ratify_likes') || "{}");
-
-        listaAudiosActual.forEach((audio, index) => {
-            const item = document.createElement('div');
-            item.className = 'item-audio';
-            const portadaUrl = audio.url_portada || 'https://via.placeholder.com/150/181818/1DB954?text=Ratify';
-            const esNuevo = audio.timestamp && (Date.now() - audio.timestamp) < (7 * 24 * 60 * 60 * 1000);
-            const badgeHtml = esNuevo ? `<span class="badge-nuevo">NUEVO</span>` : '';
-            const tieneLike = misLikes[audio.id];
-            const iconHeart = tieneLike ? 'fas' : 'far';
-            const colorHeart = tieneLike ? '#ff4d4d' : 'var(--text-sub)';
-            const numLikes = audio.likes || 0;
-
-            let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;"></i>`;
-            if(esProfesor) { controlesHtml = `<i class="fas fa-trash trash-btn" onclick="event.stopPropagation(); borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}')"></i>` + controlesHtml; }
-
-            item.innerHTML = `
-                <img src="${portadaUrl}" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
-                <div style="flex-grow: 1; overflow:hidden; padding-right:10px;">
-                    <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; display:flex; align-items:center;">${audio.titulo} ${badgeHtml}</h4>
-                    <p>${audio.fecha}</p>
-                </div>
-                <div style="display:flex; align-items:center; gap: 15px;">
-                    <div class="btn-like" style="display:flex; flex-direction:column; align-items:center; min-width:25px;" onclick="darLike('${audio.id}', event)">
-                        <i class="${iconHeart} fa-heart" style="color: ${colorHeart}; font-size: 18px;"></i>
-                        <span style="font-size:10px; color:var(--text-sub); margin-top:3px;">${numLikes}</span>
-                    </div>
-                    ${controlesHtml}
-                </div>
-            `;
-            item.onclick = (e) => { if(e.target.closest('.btn-like') || e.target.closest('.trash-btn')) return; reproducirAudio(index); };
-            contenedor.appendChild(item);
-        });
+        episodiosBrutos = [];
+        querySnapshot.forEach((doc) => { const audio = doc.data(); audio.id = doc.id; if (audio.seccion === seccion) episodiosBrutos.push(audio); });
+        renderizarLista();
     } catch (error) { contenedor.innerHTML = '<p style="text-align:center; color: red;">Error conectando a Firebase.</p>'; }
+}
+
+function renderizarLista() {
+    const contenedor = document.getElementById('lista-reproduccion');
+    contenedor.innerHTML = '';
+    
+    if (episodiosBrutos.length === 0) {
+        contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Aún no hay episodios subidos aquí.</p>';
+        return;
+    }
+
+    // Guardar el ID de la canción actual para no perderla de vista al ordenar
+    const idSonando = listaAudiosActual[indiceAudioActual]?.id;
+
+    // Clonar y ordenar la lista
+    listaAudiosActual = [...episodiosBrutos];
+    listaAudiosActual.sort((a, b) => {
+        const timeA = a.timestamp || 0; const timeB = b.timestamp || 0;
+        return ordenReciente ? (timeB - timeA) : (timeA - timeB);
+    });
+
+    // Restaurar el índice correcto si había algo sonando
+    if (idSonando) { indiceAudioActual = listaAudiosActual.findIndex(a => a.id === idSonando); }
+
+    // Actualizar botón de Orden
+    const btnOrden = document.getElementById('btn-ordenar');
+    btnOrden.innerHTML = ordenReciente ? '<i class="fas fa-sort-amount-down"></i> Más recientes' : '<i class="fas fa-sort-amount-up"></i> Más antiguos';
+
+    let misLikes = JSON.parse(localStorage.getItem('ratify_likes') || "{}");
+
+    listaAudiosActual.forEach((audio, index) => {
+        const item = document.createElement('div');
+        item.className = 'item-audio';
+        const portadaUrl = audio.url_portada || 'https://via.placeholder.com/150/181818/1DB954?text=Ratify';
+        const esNuevo = audio.timestamp && (Date.now() - audio.timestamp) < (7 * 24 * 60 * 60 * 1000);
+        const badgeHtml = esNuevo ? `<span class="badge-nuevo">NUEVO</span>` : '';
+        const tieneLike = misLikes[audio.id];
+        const iconHeart = tieneLike ? 'fas' : 'far'; const colorHeart = tieneLike ? '#ff4d4d' : 'var(--text-sub)'; const numLikes = audio.likes || 0;
+
+        let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;"></i>`;
+        if(esProfesor) { controlesHtml = `<i class="fas fa-trash trash-btn" onclick="event.stopPropagation(); borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}')"></i>` + controlesHtml; }
+
+        item.innerHTML = `
+            <img src="${portadaUrl}" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
+            <div style="flex-grow: 1; overflow:hidden; padding-right:10px;">
+                <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; display:flex; align-items:center;">${audio.titulo} ${badgeHtml}</h4>
+                <p>${audio.fecha}</p>
+            </div>
+            <div style="display:flex; align-items:center; gap: 15px;">
+                <div class="btn-like" style="display:flex; flex-direction:column; align-items:center; min-width:25px;" onclick="darLike('${audio.id}', event)">
+                    <i class="${iconHeart} fa-heart" style="color: ${colorHeart}; font-size: 18px;"></i>
+                    <span style="font-size:10px; color:var(--text-sub); margin-top:3px;">${numLikes}</span>
+                </div>
+                ${controlesHtml}
+            </div>
+        `;
+        item.onclick = (e) => { if(e.target.closest('.btn-like') || e.target.closest('.trash-btn')) return; reproducirAudio(index); };
+        contenedor.appendChild(item);
+    });
+}
+
+function toggleOrden() { ordenReciente = !ordenReciente; renderizarLista(); }
+
+function toggleAleatorio() {
+    modoAleatorio = !modoAleatorio;
+    const btnLista = document.getElementById('btn-aleatorio-lista');
+    const btnPlayer = document.getElementById('btn-aleatorio-player');
+    
+    if(modoAleatorio) {
+        if(btnLista) btnLista.classList.add('activo');
+        if(btnPlayer) { btnPlayer.style.color = "var(--spotify-green)"; btnPlayer.style.textShadow = "0 0 10px rgba(29, 185, 84, 0.5)"; }
+    } else {
+        if(btnLista) btnLista.classList.remove('activo');
+        if(btnPlayer) { btnPlayer.style.color = "var(--text-sub)"; btnPlayer.style.textShadow = "none"; }
+    }
 }
 
 async function darLike(id, event) {
@@ -137,8 +177,19 @@ function actualizarBotonesPlay(reproduciendo) {
         else { icono.classList.remove('fa-pause-circle'); icono.classList.add('fa-play-circle'); }
     });
 }
-function playSiguiente() { if (indiceAudioActual < listaAudiosActual.length - 1) reproducirAudio(indiceAudioActual + 1); }
+
+function playSiguiente() { 
+    if (modoAleatorio && listaAudiosActual.length > 1) {
+        let nuevoIndice;
+        do { nuevoIndice = Math.floor(Math.random() * listaAudiosActual.length); } while (nuevoIndice === indiceAudioActual);
+        reproducirAudio(nuevoIndice);
+    } else if (indiceAudioActual < listaAudiosActual.length - 1) {
+        reproducirAudio(indiceAudioActual + 1);
+    } 
+}
 function playAnterior() { if (indiceAudioActual > 0) reproducirAudio(indiceAudioActual - 1); }
+
+// ¡Magia! Cuando la canción acaba, salta sola a la siguiente
 audioReal.onended = playSiguiente;
 
 function abrirReproductorCompleto() { document.getElementById('reproductor-completo').classList.add('activa'); }

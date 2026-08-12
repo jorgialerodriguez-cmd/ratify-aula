@@ -1,7 +1,14 @@
 :root { --bg-color: #121212; --card-color: #181818; --text-main: #FFFFFF; --text-sub: #B3B3B3; --spotify-green: #1DB954; }
-body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; }
-.pantalla { display: none; height: 100%; width: 100%; }
-.pantalla.activa { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+body { 
+    margin: 0; 
+    font-family: 'Helvetica Neue', Arial, sans-serif; 
+    background-color: var(--bg-color); 
+    color: var(--text-main); 
+    display: flex; 
+    flex-direction: column; 
+    height: 100dvh; 
+    overflow: hidden; 
+}
 
 /* Perfiles */
 .perfiles-container { display: flex; gap: 30px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }

@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratify - Tu app de aula</title>
+    
+    <!-- CONEXIÓN PWA (App Instalable) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="logo.jpeg">
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Pantalla 1: Selección de Perfiles -->
+    <!-- Pantalla 1: Selección de Perfiles (SIN LOGO) -->
     <div id="pantalla-perfiles" class="pantalla activa">
         <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
         
@@ -25,15 +31,13 @@
         </div>
     </div>
 
-    <!-- Pantalla 2A: Login Profesor -->
+    <!-- Pantalla 2A y 2B: Logins -->
     <div id="pantalla-login" class="pantalla">
         <h2 id="titulo-login-profe">Acceso Profesor</h2>
         <input type="password" id="password-profe" placeholder="Contraseña">
         <button onclick="entrarComoProfesor()">Entrar</button>
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
-
-    <!-- Pantalla 2B: Login Familias -->
     <div id="pantalla-login-padres" class="pantalla">
         <h2 id="titulo-login-padres">Acceso Familias</h2>
         <input type="password" id="password-padres" placeholder="Contraseña">
@@ -45,7 +49,8 @@
     <div id="pantalla-app" class="pantalla">
         <header>
             <div style="display:flex; align-items:center; gap: 10px;">
-                <i class="fas fa-cheese" style="color: var(--spotify-green); font-size: 24px;"></i>
+                <!-- EL LOGO NUEVO AQUÍ -->
+                <img src="logo.jpeg" alt="Logo Ratify" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: white;">
                 <h2 id="titulo-seccion" style="margin:0;">Ratonera FM</h2>
             </div>
             <div style="display:flex; align-items:center; gap: 10px;">
@@ -55,10 +60,9 @@
         </header>
 
         <main id="lista-reproduccion">
-            <!-- Los audios se cargarán aquí -->
+            <!-- Audios -->
         </main>
 
-        <!-- Mini Reproductor Inferior -->
         <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
             <div class="info-pista">
                 <img id="mini-cover" src="" alt="" class="portada-cancion" style="object-fit: cover;">
@@ -73,27 +77,19 @@
         </div>
 
         <nav id="menu-inferior">
-            <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')">
-                <i class="fas fa-podcast"></i><span>Ratonera FM</span>
-            </div>
-            <div class="tab" onclick="cambiarSeccion('Hits')">
-                <i class="fas fa-compact-disc"></i><span>Hits</span>
-            </div>
-            <div class="tab" onclick="cambiarSeccion('Episodios Especiales')">
-                <i class="fas fa-star"></i><span>Especiales</span>
-            </div>
+            <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')"><i class="fas fa-podcast"></i><span>Ratonera FM</span></div>
+            <div class="tab" onclick="cambiarSeccion('Hits')"><i class="fas fa-compact-disc"></i><span>Hits</span></div>
+            <div class="tab" onclick="cambiarSeccion('Episodios Especiales')"><i class="fas fa-star"></i><span>Especiales</span></div>
         </nav>
     </div>
 
-    <!-- Pantalla 4: Reproductor Completo (AQUÍ ESTÁ LA NUEVA BARRA) -->
+    <!-- Pantalla 4: Reproductor Completo -->
     <div id="reproductor-completo" class="pantalla">
         <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
-        
         <img id="full-cover" src="" alt="Portada">
         <h2 id="full-title">Título</h2>
         <p id="full-date">Fecha</p>
         
-        <!-- BARRA DE TIEMPO -->
         <div class="progreso-container">
             <span id="tiempo-actual">0:00</span>
             <input type="range" id="barra-progreso" value="0" min="0" step="1">
@@ -107,7 +103,7 @@
         </div>
     </div>
 
-    <!-- Modal de Subida -->
+    <!-- Modal Subida -->
     <div id="modal-subida" class="modal">
         <div class="modal-contenido">
             <h3>Subir Nuevo Episodio</h3>
@@ -126,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Modal de Ajustes -->
+    <!-- Modal Ajustes -->
     <div id="modal-ajustes" class="modal">
         <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
             <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
@@ -140,9 +136,7 @@
             <input type="text" id="ajuste-img-profe">
             <label>Contraseña Profe:</label>
             <input type="text" id="ajuste-pass-profe">
-
             <hr style="border-color: #282828; margin: 15px 0;">
-
             <label>Nombre Perfil Familias:</label>
             <input type="text" id="ajuste-nombre-padres">
             <label>URL Imagen Familias:</label>
@@ -157,10 +151,11 @@
 
     <audio id="audio-elemento"></audio>
 
-    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES ABAJO -->
+    <!-- FIREBASE: ¡NO OLVIDES PEGAR TUS CLAVES AQUÍ ABAJO! -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // Añadimos updateDoc e increment para los Likes
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
         const firebaseConfig = {
@@ -178,6 +173,7 @@
         
         window.collection = collection; window.getDocs = getDocs; window.addDoc = addDoc;
         window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
+        window.updateDoc = updateDoc; window.increment = increment;
         window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
       </script>
     <script src="app.js"></script>

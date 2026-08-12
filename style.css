@@ -86,3 +86,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .btn-like:active {
     transform: scale(1.3);
 }
+input, select {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+}

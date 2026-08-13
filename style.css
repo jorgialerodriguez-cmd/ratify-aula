@@ -1,6 +1,19 @@
 :root { --bg-color: #121212; --card-color: #181818; --text-main: #FFFFFF; --text-sub: #B3B3B3; --spotify-green: #1DB954; }
 body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
+/* ---- PANTALLA DE BIENVENIDA RATÓN ---- */
+#pantalla-bienvenida {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: var(--bg-color);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 99999; /* Por encima de todo */
+    transition: opacity 0.5s ease;
+}
+.raton-gigante { width: 250px; max-width: 80%; animation: latido 2s infinite; margin-bottom: 20px;}
+.mensaje-bienvenida { font-size: 30px; font-weight: bold; color: var(--spotify-green); }
+@keyframes latido { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+/* ------------------------------------- */
+
 .pantalla { display: none; height: 100%; width: 100%; }
 .pantalla.activa { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
@@ -18,7 +31,6 @@ button.btn-secundario { background-color: transparent; color: var(--text-main); 
 header { display: flex; justify-content: space-between; align-items: center; padding: 20px 15px; width: 100%; box-sizing: border-box; background: linear-gradient(rgba(29,185,84,0.3), var(--bg-color)); }
 #btn-subir { width: auto; padding: 8px 15px; margin: 0; border-radius: 50px; }
 
-/* Botones de Filtro */
 .btn-filtro { background: transparent; color: var(--text-sub); border: 1px solid var(--text-sub); padding: 6px 12px; font-size: 12px; border-radius: 20px; width: auto; margin: 0; transition: 0.2s; }
 .btn-filtro.activo { color: var(--spotify-green); border-color: var(--spotify-green); }
 
@@ -68,39 +80,6 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .modal-contenido select, .modal-contenido input[type="text"], .modal-contenido input[type="file"] { margin-bottom: 15px; padding: 12px; background: #282828; color: white; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; font-family: inherit;}
 .modal-contenido label { font-size: 13px; color: var(--spotify-green); margin-bottom: 5px; }
 
-/* ---- ANIMACIÓN LLUVIA DE CORAZONES ---- */
-.corazon-animado {
-    position: fixed;
-    bottom: -20px;
-    color: #ff4d4d;
-    z-index: 9999;
-    pointer-events: none;
-    animation: flotar 2s ease-in-out forwards;
-}
-
-@keyframes flotar {
-    0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-    50% { opacity: 1; transform: translateY(-40vh) scale(1.5) rotate(15deg); }
-    100% { transform: translateY(-80vh) scale(1) rotate(-15deg); opacity: 0; }
-}
-
-/* ---- RATÓN MASCOTA ---- */
-#raton-mascota {
-    position: fixed;
-    bottom: -150px;
-    right: -20px;
-    width: 130px;
-    z-index: 9999;
-    pointer-events: none;
-    transition: transform 0.5s ease-out;
-}
-
-.asomado {
-    transform: translateY(-130px);
-    animation: saludar-raton 3s infinite;
-}
-
-@keyframes saludar-raton {
-    0%, 100% { transform: translateY(-130px) rotate(0deg); }
-    50% { transform: translateY(-130px) rotate(-8deg); }
-}
+/* Animación Lluvia Corazones */
+.corazon-animado { position: fixed; bottom: -20px; color: #ff4d4d; z-index: 9999; pointer-events: none; animation: flotar 2s ease-in-out forwards; }
+@keyframes flotar { 0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } 50% { opacity: 1; transform: translateY(-40vh) scale(1.5) rotate(15deg); } 100% { transform: translateY(-80vh) scale(1) rotate(-15deg); opacity: 0; } }

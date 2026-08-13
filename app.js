@@ -15,6 +15,15 @@ let configApp = { passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https:/
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
 window.addEventListener('load', () => {
+    // MAGIA: El ratón de bienvenida dura 2 segundos y desaparece
+    setTimeout(() => {
+        const splash = document.getElementById('pantalla-bienvenida');
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }
+    }, 2000);
+
     setTimeout(async () => {
         try {
             const docSnap = await window.getDoc(window.doc(window.db, "configuracion", "general"));
@@ -40,20 +49,12 @@ function iniciarApp() {
     document.getElementById('btn-subir').style.display = esProfesor ? 'block' : 'none';
     document.getElementById('btn-ajustes').style.display = esProfesor ? 'block' : 'none';
     cambiarSeccion('Ratonera FM');
-
-    // Hacemos que el ratón asome al entrar a la app
-    setTimeout(() => {
-        const raton = document.getElementById('raton-mascota');
-        if(raton) raton.classList.add('asomado');
-    }, 500);
 }
 
 function cerrarSesion() { 
     audioReal.pause(); 
     document.getElementById('reproductor').style.display = 'none'; 
     cerrarModalAjustes(); 
-    const raton = document.getElementById('raton-mascota');
-    if(raton) raton.classList.remove('asomado'); // Escondemos al ratón al salir
     volverAPerfiles(); 
 }
 

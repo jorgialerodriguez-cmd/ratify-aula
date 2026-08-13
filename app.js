@@ -40,9 +40,22 @@ function iniciarApp() {
     document.getElementById('btn-subir').style.display = esProfesor ? 'block' : 'none';
     document.getElementById('btn-ajustes').style.display = esProfesor ? 'block' : 'none';
     cambiarSeccion('Ratonera FM');
+
+    // Hacemos que el ratón asome al entrar a la app
+    setTimeout(() => {
+        const raton = document.getElementById('raton-mascota');
+        if(raton) raton.classList.add('asomado');
+    }, 500);
 }
 
-function cerrarSesion() { audioReal.pause(); document.getElementById('reproductor').style.display = 'none'; cerrarModalAjustes(); volverAPerfiles(); }
+function cerrarSesion() { 
+    audioReal.pause(); 
+    document.getElementById('reproductor').style.display = 'none'; 
+    cerrarModalAjustes(); 
+    const raton = document.getElementById('raton-mascota');
+    if(raton) raton.classList.remove('asomado'); // Escondemos al ratón al salir
+    volverAPerfiles(); 
+}
 
 async function cambiarSeccion(seccion) {
     document.getElementById('titulo-seccion').innerText = seccion;
@@ -131,24 +144,16 @@ function toggleAleatorio() {
     }
 }
 
-/* ---- MAGIA: FUNCIÓN PARA LANZAR LOS CORAZONES ---- */
 function lanzarLluviaDeCorazones() {
-    const numCorazones = 20; // Cantidad de corazones que saldrán
+    const numCorazones = 20; 
     for(let i = 0; i < numCorazones; i++) {
         const corazon = document.createElement('i');
         corazon.className = 'fas fa-heart corazon-animado';
-        
-        // Posición horizontal aleatoria
         corazon.style.left = Math.random() * 95 + 'vw';
-        // Tamaño aleatorio para que se vea más dinámico
         corazon.style.fontSize = (Math.random() * 20 + 15) + 'px';
-        // Un poco de retraso para que no salgan todos idénticos
         corazon.style.animationDelay = (Math.random() * 0.5) + 's';
         corazon.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
-        
         document.body.appendChild(corazon);
-        
-        // Borramos el elemento después de la animación para no colapsar la app
         setTimeout(() => { corazon.remove(); }, 2500);
     }
 }
@@ -161,8 +166,6 @@ async function darLike(id, event) {
         delete misLikes[id]; delta = -1; icono.className = "far fa-heart"; icono.style.color = "var(--text-sub)"; 
     } else { 
         misLikes[id] = true; delta = 1; icono.className = "fas fa-heart"; icono.style.color = "#ff4d4d"; 
-        
-        // Llamamos a la animación solo si el usuario le da Like (no al quitarlo)
         lanzarLluviaDeCorazones();
     }
     

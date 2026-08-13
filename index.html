@@ -14,7 +14,6 @@
 </head>
 <body>
 
-    <!-- Pantalla 1: Perfiles -->
     <div id="pantalla-perfiles" class="pantalla activa">
         <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
         <div class="perfiles-container">
@@ -29,7 +28,6 @@
         </div>
     </div>
 
-    <!-- Pantalla 2A: Login Profesor -->
     <div id="pantalla-login" class="pantalla">
         <h2 id="titulo-login-profe">Acceso Profesor</h2>
         <input type="password" id="password-profe" placeholder="Contraseña">
@@ -37,7 +35,6 @@
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
 
-    <!-- Pantalla 2B: Login Familias -->
     <div id="pantalla-login-padres" class="pantalla">
         <h2 id="titulo-login-padres">Acceso Familias</h2>
         <input type="password" id="password-padres" placeholder="Contraseña">
@@ -45,7 +42,6 @@
         <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
     </div>
 
-    <!-- Pantalla 3: App Principal -->
     <div id="pantalla-app" class="pantalla">
         <header>
             <div style="display:flex; align-items:center; gap: 10px;">
@@ -58,7 +54,6 @@
             </div>
         </header>
 
-        <!-- NUEVO: Barra de controles (Ordenar y Aleatorio) -->
         <div id="barra-controles" style="display: flex; justify-content: space-between; padding: 0 15px 10px 15px;">
             <button id="btn-ordenar" onclick="toggleOrden()" class="btn-filtro"><i class="fas fa-sort-amount-down"></i> Más recientes</button>
             <button id="btn-aleatorio-lista" onclick="toggleAleatorio()" class="btn-filtro" style="display: none;"><i class="fas fa-random"></i> Aleatorio</button>
@@ -86,7 +81,6 @@
         </nav>
     </div>
 
-    <!-- Pantalla 4: Reproductor Completo -->
     <div id="reproductor-completo" class="pantalla">
         <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
         <img id="full-cover" src="" alt="Portada">
@@ -100,16 +94,13 @@
         </div>
 
         <div class="controles-grandes">
-            <!-- NUEVO: Botón aleatorio también en el reproductor -->
             <i class="fas fa-random" id="btn-aleatorio-player" onclick="toggleAleatorio()" style="font-size: 20px; color: var(--text-sub); transition: 0.2s;"></i>
             <i class="fas fa-step-backward" onclick="playAnterior()"></i>
             <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
             <i class="fas fa-step-forward" onclick="playSiguiente()"></i>
-            <i class="fas fa-redo" style="font-size: 20px; color: transparent;"></i> <!-- Invisible para equilibrar -->
-        </div>
+            <i class="fas fa-redo" style="font-size: 20px; color: transparent;"></i> </div>
     </div>
 
-    <!-- Modal Subida -->
     <div id="modal-subida" class="modal">
         <div class="modal-contenido">
             <h3>Subir Nuevo Episodio</h3>
@@ -128,7 +119,6 @@
         </div>
     </div>
 
-    <!-- Modal Ajustes -->
     <div id="modal-ajustes" class="modal">
         <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
             <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
@@ -156,8 +146,9 @@
     </div>
 
     <audio id="audio-elemento"></audio>
+    
+    <img id="raton-mascota" src="raton.png" alt="Ratón saludando">
 
-    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ ABAJO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

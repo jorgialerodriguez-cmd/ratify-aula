@@ -1,8 +1,8 @@
 let esProfesor = false;
-let episodiosBrutos = []; // Guarda los datos tal cual vienen de Firebase
-let listaAudiosActual = []; // Guarda la lista ya filtrada y ordenada
+let episodiosBrutos = []; 
+let listaAudiosActual = []; 
 let indiceAudioActual = -1;
-let ordenReciente = true; // Por defecto, los más nuevos primero
+let ordenReciente = true; 
 let modoAleatorio = false;
 
 const audioReal = document.getElementById('audio-elemento');
@@ -11,6 +11,7 @@ const tiempoActualText = document.getElementById('tiempo-actual');
 const tiempoTotalText = document.getElementById('tiempo-total');
 
 let configApp = { passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150", passPadres: "ratones2026", nombrePadres: "Familia", imgPadres: "https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" };
+
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
 window.addEventListener('load', () => {
@@ -47,7 +48,6 @@ async function cambiarSeccion(seccion) {
     document.getElementById('titulo-seccion').innerText = seccion;
     document.querySelectorAll('.tab').forEach(tab => { tab.classList.remove('activo'); if(tab.innerText.includes(seccion)) tab.classList.add('activo'); });
     
-    // Mostrar u ocultar el botón Aleatorio dependiendo de la sección
     document.getElementById('btn-aleatorio-lista').style.display = (seccion === 'Hits') ? 'block' : 'none';
     const contenedor = document.getElementById('lista-reproduccion');
     contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Buscando episodios...</p>'; 
@@ -69,20 +69,16 @@ function renderizarLista() {
         return;
     }
 
-    // Guardar el ID de la canción actual para no perderla de vista al ordenar
     const idSonando = listaAudiosActual[indiceAudioActual]?.id;
 
-    // Clonar y ordenar la lista
     listaAudiosActual = [...episodiosBrutos];
     listaAudiosActual.sort((a, b) => {
         const timeA = a.timestamp || 0; const timeB = b.timestamp || 0;
         return ordenReciente ? (timeB - timeA) : (timeA - timeB);
     });
 
-    // Restaurar el índice correcto si había algo sonando
     if (idSonando) { indiceAudioActual = listaAudiosActual.findIndex(a => a.id === idSonando); }
 
-    // Actualizar botón de Orden
     const btnOrden = document.getElementById('btn-ordenar');
     btnOrden.innerHTML = ordenReciente ? '<i class="fas fa-sort-amount-down"></i> Más recientes' : '<i class="fas fa-sort-amount-up"></i> Más antiguos';
 
@@ -100,8 +96,9 @@ function renderizarLista() {
         let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;"></i>`;
         if(esProfesor) { controlesHtml = `<i class="fas fa-trash trash-btn" onclick="event.stopPropagation(); borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}')"></i>` + controlesHtml; }
 
+        // AQUÍ ESTÁ LA MAGIA: loading="lazy" añadido a la etiqueta img
         item.innerHTML = `
-            <img src="${portadaUrl}" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
+            <img src="${portadaUrl}" loading="lazy" alt="Portada de ${audio.titulo}" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
             <div style="flex-grow: 1; overflow:hidden; padding-right:10px;">
                 <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; display:flex; align-items:center;">${audio.titulo} ${badgeHtml}</h4>
                 <p>${audio.fecha}</p>
@@ -188,8 +185,6 @@ function playSiguiente() {
     } 
 }
 function playAnterior() { if (indiceAudioActual > 0) reproducirAudio(indiceAudioActual - 1); }
-
-// ¡Magia! Cuando la canción acaba, salta sola a la siguiente
 audioReal.onended = playSiguiente;
 
 function abrirReproductorCompleto() { document.getElementById('reproductor-completo').classList.add('activa'); }

@@ -96,9 +96,8 @@ function renderizarLista() {
         let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;"></i>`;
         if(esProfesor) { controlesHtml = `<i class="fas fa-trash trash-btn" onclick="event.stopPropagation(); borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}')"></i>` + controlesHtml; }
 
-        // AQUÍ ESTÁ LA MAGIA: loading="lazy" añadido a la etiqueta img
         item.innerHTML = `
-            <img src="${portadaUrl}" loading="lazy" alt="Portada de ${audio.titulo}" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
+            <img src="${portadaUrl}" loading="lazy" alt="Portada" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
             <div style="flex-grow: 1; overflow:hidden; padding-right:10px;">
                 <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; display:flex; align-items:center;">${audio.titulo} ${badgeHtml}</h4>
                 <p>${audio.fecha}</p>
@@ -132,11 +131,41 @@ function toggleAleatorio() {
     }
 }
 
+/* ---- MAGIA: FUNCIÓN PARA LANZAR LOS CORAZONES ---- */
+function lanzarLluviaDeCorazones() {
+    const numCorazones = 20; // Cantidad de corazones que saldrán
+    for(let i = 0; i < numCorazones; i++) {
+        const corazon = document.createElement('i');
+        corazon.className = 'fas fa-heart corazon-animado';
+        
+        // Posición horizontal aleatoria
+        corazon.style.left = Math.random() * 95 + 'vw';
+        // Tamaño aleatorio para que se vea más dinámico
+        corazon.style.fontSize = (Math.random() * 20 + 15) + 'px';
+        // Un poco de retraso para que no salgan todos idénticos
+        corazon.style.animationDelay = (Math.random() * 0.5) + 's';
+        corazon.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+        
+        document.body.appendChild(corazon);
+        
+        // Borramos el elemento después de la animación para no colapsar la app
+        setTimeout(() => { corazon.remove(); }, 2500);
+    }
+}
+
 async function darLike(id, event) {
     event.stopPropagation(); const cajaLike = event.currentTarget; const icono = cajaLike.querySelector('i'); const contador = cajaLike.querySelector('span');
     let misLikes = JSON.parse(localStorage.getItem('ratify_likes') || "{}"); let delta = 1;
-    if(misLikes[id]) { delete misLikes[id]; delta = -1; icono.className = "far fa-heart"; icono.style.color = "var(--text-sub)"; } 
-    else { misLikes[id] = true; delta = 1; icono.className = "fas fa-heart"; icono.style.color = "#ff4d4d"; }
+    
+    if(misLikes[id]) { 
+        delete misLikes[id]; delta = -1; icono.className = "far fa-heart"; icono.style.color = "var(--text-sub)"; 
+    } else { 
+        misLikes[id] = true; delta = 1; icono.className = "fas fa-heart"; icono.style.color = "#ff4d4d"; 
+        
+        // Llamamos a la animación solo si el usuario le da Like (no al quitarlo)
+        lanzarLluviaDeCorazones();
+    }
+    
     localStorage.setItem('ratify_likes', JSON.stringify(misLikes));
     contador.innerText = (parseInt(contador.innerText) || 0) + delta;
     try { await window.updateDoc(window.doc(window.db, "episodios", id), { likes: window.increment(delta) }); } catch(e) {}

@@ -68,13 +68,13 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .modal-contenido select, .modal-contenido input[type="text"], .modal-contenido input[type="file"] { margin-bottom: 15px; padding: 12px; background: #282828; color: white; border-radius: 5px; border: none; width: 100%; box-sizing: border-box; font-family: inherit;}
 .modal-contenido label { font-size: 13px; color: var(--spotify-green); margin-bottom: 5px; }
 
-/* ---- MAGIA: ANIMACIÓN LLUVIA DE CORAZONES ---- */
+/* ---- ANIMACIÓN LLUVIA DE CORAZONES ---- */
 .corazon-animado {
     position: fixed;
     bottom: -20px;
     color: #ff4d4d;
     z-index: 9999;
-    pointer-events: none; /* Para que no estorben si pinchas encima */
+    pointer-events: none;
     animation: flotar 2s ease-in-out forwards;
 }
 
@@ -82,4 +82,25 @@ header { display: flex; justify-content: space-between; align-items: center; pad
     0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
     50% { opacity: 1; transform: translateY(-40vh) scale(1.5) rotate(15deg); }
     100% { transform: translateY(-80vh) scale(1) rotate(-15deg); opacity: 0; }
+}
+
+/* ---- RATÓN MASCOTA ---- */
+#raton-mascota {
+    position: fixed;
+    bottom: -150px;
+    right: -20px;
+    width: 130px;
+    z-index: 9999;
+    pointer-events: none;
+    transition: transform 0.5s ease-out;
+}
+
+.asomado {
+    transform: translateY(-130px);
+    animation: saludar-raton 3s infinite;
+}
+
+@keyframes saludar-raton {
+    0%, 100% { transform: translateY(-130px) rotate(0deg); }
+    50% { transform: translateY(-130px) rotate(-8deg); }
 }

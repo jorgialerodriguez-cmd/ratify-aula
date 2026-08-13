@@ -3,80 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida Familias</title>
-    <style>
-        /* ESTILOS DE LA PANTALLA DEL RATÓN */
-        #pantalla-raton {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #fce4ec; /* Color de fondo amigable */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999; /* Para que esté por encima de todo */
-            transition: opacity 0.5s ease; /* Efecto suave al desaparecer */
-        }
+    <title>Ratify - Tu app de aula</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="logo.jpeg">
 
-        .raton-gigante {
-            font-size: 150px; /* Tamaño muy grande para el ratón */
-            margin-bottom: 20px;
-        }
-
-        .mensaje-bienvenida {
-            font-size: 40px;
-            font-family: 'Arial', sans-serif;
-            color: #333;
-            font-weight: bold;
-        }
-
-        /* ESTILOS DE LA PANTALLA DE PERFILES (Oculta al principio) */
-        #pantalla-perfiles {
-            display: none; /* Se oculta hasta que el ratón se vaya */
-            text-align: center;
-            padding: 50px;
-            font-family: 'Arial', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- 1. PANTALLA DEL RATÓN QUE SALUDA -->
-    <div id="pantalla-raton">
-        <!-- Puedes cambiar el emoji por una imagen usando <img src="ruta-de-tu-raton.png"> -->
-        <div class="raton-gigante">🐭</div> 
+    <!-- NUEVO: PANTALLA DE BIENVENIDA (RATÓN GIGANTE) -->
+    <div id="pantalla-bienvenida">
+        <img src="raton.png" alt="Ratón saludando" class="raton-gigante">
         <div class="mensaje-bienvenida">¡Hola, familias!</div>
     </div>
 
-    <!-- 2. PANTALLA DE SELECCIÓN DE PERFIL -->
-    <div id="pantalla-perfiles">
-        <h1>Selecciona un perfil</h1>
-        <p>Aquí irían los botones para elegir perfil...</p>
+    <!-- Pantalla 1: Perfiles -->
+    <div id="pantalla-perfiles" class="pantalla activa">
+        <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
+        <div class="perfiles-container">
+            <div class="perfil" onclick="mostrarLoginProfesor()">
+                <img id="img-profe-ui" src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
+                <p id="nombre-profe-ui">Profesor</p>
+            </div>
+            <div class="perfil" onclick="mostrarLoginPadres()">
+                <img id="img-padres-ui" src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="Padres">
+                <p id="nombre-padres-ui">Familia</p>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // LÓGICA PARA LOS 2 SEGUNDOS
-        window.onload = function() {
-            // Esperar 2000 milisegundos (2 segundos)
-            setTimeout(function() {
-                const pantallaRaton = document.getElementById('pantalla-raton');
-                const pantallaPerfiles = document.getElementById('pantalla-perfiles');
-                
-                // Efecto de desvanecimiento
-                pantallaRaton.style.opacity = '0';
-                
-                // Esperar a que termine el desvanecimiento para quitarlo del todo
-                setTimeout(function() {
-                    pantallaRaton.style.display = 'none';
-                    // Mostrar la pantalla de perfiles
-                    pantallaPerfiles.style.display = 'block';
-                }, 500); // 500ms es lo que dura la transición CSS
-                
-            }, 2000);
+    <!-- Pantalla 2A: Login Profesor -->
+    <div id="pantalla-login" class="pantalla">
+        <h2 id="titulo-login-profe">Acceso Profesor</h2>
+        <input type="password" id="password-profe" placeholder="Contraseña">
+        <button onclick="entrarComoProfesor()">Entrar</button>
+        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+    </div>
+
+    <!-- Pantalla 2B: Login Familias -->
+    <div id="pantalla-login-padres" class="pantalla">
+        <h2 id="titulo-login-padres">Acceso Familias</h2>
+        <input type="password" id="password-padres" placeholder="Contraseña">
+        <button onclick="entrarComoPadre()">Entrar</button>
+        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+    </div>
+
+    <!-- Pantalla 3: App Principal -->
+    <div id="pantalla-app" class="pantalla">
+        <header>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <img src="logo.jpeg" alt="Logo Ratify" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background: white;">
+                <h2 id="titulo-seccion" style="margin:0;">Ratonera FM</h2>
+            </div>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <button id="btn-subir" style="display: none;" onclick="abrirModalSubida()"><i class="fas fa-plus"></i></button>
+                <button id="btn-ajustes" style="display: none; background: transparent; padding: 5px; width: auto;" onclick="abrirModalAjustes()"><i class="fas fa-cog" style="color: var(--text-sub); font-size: 20px;"></i></button>
+            </div>
+        </header>
+
+        <div id="barra-controles" style="display: flex; justify-content: space-between; padding: 0 15px 10px 15px;">
+            <button id="btn-ordenar" onclick="toggleOrden()" class="btn-filtro"><i class="fas fa-sort-amount-down"></i> Más recientes</button>
+            <button id="btn-aleatorio-lista" onclick="toggleAleatorio()" class="btn-filtro" style="display: none;"><i class="fas fa-random"></i> Aleatorio</button>
+        </div>
+
+        <main id="lista-reproduccion"></main>
+
+        <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
+            <div class="info-pista">
+                <img id="mini-cover" src="" alt="" class="portada-cancion" style="object-fit: cover;">
+                <div class="textos-cancion">
+                    <h4 id="mini-title">Selecciona un audio</h4>
+                    <p id="mini-date">Ratify</p>
+                </div>
+            </div>
+            <div class="controles-player" onclick="event.stopPropagation()">
+                <i class="fas fa-play-circle play-btn mini-btn-play" onclick="togglePlay()"></i>
+            </div>
+        </div>
+
+        <nav id="menu-inferior">
+            <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')"><i class="fas fa-podcast"></i><span>Ratonera FM</span></div>
+            <div class="tab" onclick="cambiarSeccion('Hits')"><i class="fas fa-compact-disc"></i><span>Hits</span></div>
+            <div class="tab" onclick="cambiarSeccion('Episodios Especiales')"><i class="fas fa-star"></i><span>Especiales</span></div>
+        </nav>
+    </div>
+
+    <!-- Pantalla 4: Reproductor Completo -->
+    <div id="reproductor-completo" class="pantalla">
+        <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
+        <img id="full-cover" src="" alt="Portada">
+        <h2 id="full-title">Título</h2>
+        <p id="full-date">Fecha</p>
+        
+        <div class="progreso-container">
+            <span id="tiempo-actual">0:00</span>
+            <input type="range" id="barra-progreso" value="0" min="0" step="1">
+            <span id="tiempo-total">0:00</span>
+        </div>
+
+        <div class="controles-grandes">
+            <i class="fas fa-random" id="btn-aleatorio-player" onclick="toggleAleatorio()" style="font-size: 20px; color: var(--text-sub); transition: 0.2s;"></i>
+            <i class="fas fa-step-backward" onclick="playAnterior()"></i>
+            <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
+            <i class="fas fa-step-forward" onclick="playSiguiente()"></i>
+            <i class="fas fa-redo" style="font-size: 20px; color: transparent;"></i>
+        </div>
+    </div>
+
+    <!-- Modal Subida -->
+    <div id="modal-subida" class="modal">
+        <div class="modal-contenido">
+            <h3>Subir Nuevo Episodio</h3>
+            <input type="text" id="upload-titulo" placeholder="Título del episodio">
+            <select id="upload-seccion">
+                <option value="Ratonera FM">Ratonera FM</option>
+                <option value="Hits">Hits</option>
+                <option value="Episodios Especiales">Episodios Especiales</option>
+            </select>
+            <label>Audio (.mp3 o .m4a):</label>
+            <input type="file" id="upload-audio" accept="audio/*">
+            <label>Portada (Imagen):</label>
+            <input type="file" id="upload-portada" accept="image/*">
+            <button onclick="ejecutarSubida()" id="btn-ejecutar-subida">Subir a Firebase</button>
+            <button class="btn-secundario" onclick="cerrarModalSubida()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Ajustes -->
+    <div id="modal-ajustes" class="modal">
+        <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
+                <h3 style="margin:0;"><i class="fas fa-cog"></i> Ajustes</h3>
+                <button class="btn-secundario" style="width:auto; padding:5px 10px; margin:0;" onclick="cerrarSesion()">Cerrar sesión</button>
+            </div>
+            
+            <label>Nombre Perfil Profe:</label>
+            <input type="text" id="ajuste-nombre-profe">
+            <label>URL Imagen Profe:</label>
+            <input type="text" id="ajuste-img-profe">
+            <label>Contraseña Profe:</label>
+            <input type="text" id="ajuste-pass-profe">
+            <hr style="border-color: #282828; margin: 15px 0;">
+            <label>Nombre Perfil Familias:</label>
+            <input type="text" id="ajuste-nombre-padres">
+            <label>URL Imagen Familias:</label>
+            <input type="text" id="ajuste-img-padres">
+            <label>Contraseña Familias:</label>
+            <input type="text" id="ajuste-pass-padres">
+
+            <button onclick="guardarConfiguracion()" id="btn-guardar-ajustes" style="margin-top:15px;">Guardar Cambios</button>
+            <button class="btn-secundario" onclick="cerrarModalAjustes()">Cancelar</button>
+        </div>
+    </div>
+
+    <audio id="audio-elemento"></audio>
+    
+    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ ABAJO -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+      
+        const firebaseConfig = {
+          apiKey: "TU_API_KEY",
+          authDomain: "ratify-colegio.firebaseapp.com",
+          projectId: "ratify-colegio",
+          storageBucket: "ratify-colegio.firebasestorage.app", 
+          messagingSenderId: "TU_SENDER_ID",
+          appId: "TU_APP_ID"
         };
+      
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.storage = getStorage(app);
+        
+        window.collection = collection; window.getDocs = getDocs; window.addDoc = addDoc;
+        window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
+        window.updateDoc = updateDoc; window.increment = increment;
+        window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
     </script>
+    <script src="app.js"></script>
 </body>
 </html>

@@ -14,16 +14,16 @@ let configApp = { passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https:/
 
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
-window.addEventListener('load', () => {
-    // MAGIA: El ratón de bienvenida dura 2 segundos y desaparece
-    setTimeout(() => {
-        const splash = document.getElementById('pantalla-bienvenida');
-        if(splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 500);
-        }
-    }, 2000);
+// MAGIA CORREGIDA: El ratón empieza a contar los 2 segundos de inmediato
+setTimeout(() => {
+    const splash = document.getElementById('pantalla-bienvenida');
+    if(splash) {
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 500);
+    }
+}, 2000);
 
+window.addEventListener('load', () => {
     setTimeout(async () => {
         try {
             const docSnap = await window.getDoc(window.doc(window.db, "configuracion", "general"));

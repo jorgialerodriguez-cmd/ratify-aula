@@ -1,4 +1,4 @@
-let esProfesor = false;
+let rolActual = null;
 let episodiosBrutos = []; 
 let listaAudiosActual = []; 
 let indiceAudioActual = -1;
@@ -10,11 +10,9 @@ const barraProgreso = document.getElementById('barra-progreso');
 const tiempoActualText = document.getElementById('tiempo-actual');
 const tiempoTotalText = document.getElementById('tiempo-total');
 
-let configApp = { passProfe: "1234", nombreProfe: "Profesor", imgProfe: "https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150", passPadres: "ratones2026", nombrePadres: "Familia", imgPadres: "https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" };
-
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
-// MAGIA CORREGIDA: El ratón empieza a contar los 2 segundos de inmediato
+// PANTALLA DE BIENVENIDA RATÓN (2 Segundos)
 setTimeout(() => {
     const splash = document.getElementById('pantalla-bienvenida');
     if(splash) {
@@ -23,55 +21,80 @@ setTimeout(() => {
     }
 }, 2000);
 
+// NAVEGACIÓN BÁSICA
+function mostrarPantalla(id) { document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa')); document.getElementById(id).classList.add('activa'); }
+window.mostrarLogin = function(rolDeseado) { 
+    document.getElementById('form-login').reset(); 
+    document.getElementById('error-login').classList.add('sr-only');
+    mostrarPantalla('pantalla-login'); 
+}
+window.volverAPerfiles = function() { mostrarPantalla('pantalla-perfiles'); }
+
+// SISTEMA DE LOGIN SEGURO FIREBASE AUTH
 window.addEventListener('load', () => {
-    setTimeout(async () => {
-        try {
-            const docSnap = await window.getDoc(window.doc(window.db, "configuracion", "general"));
+    window.onAuthStateChanged(window.auth, async (user) => {
+        if (user) {
+            // El usuario ya puso su email y contraseña, vamos a ver qué rol tiene
+            const docSnap = await window.getDoc(window.doc(window.db, "usuarios", user.uid));
             if (docSnap.exists()) {
-                configApp = { ...configApp, ...docSnap.data() };
-                document.getElementById('nombre-profe-ui').innerText = configApp.nombreProfe; document.getElementById('img-profe-ui').src = configApp.imgProfe;
-                document.getElementById('nombre-padres-ui').innerText = configApp.nombrePadres; document.getElementById('img-padres-ui').src = configApp.imgPadres;
-                document.getElementById('titulo-login-profe').innerText = "Acceso " + configApp.nombreProfe; document.getElementById('titulo-login-padres').innerText = "Acceso " + configApp.nombrePadres;
+                rolActual = docSnap.data().rol; // 'profesor' o 'familia'
+                iniciarApp();
             }
-        } catch(e) {}
-    }, 1000);
+        } else {
+            rolActual = null;
+            mostrarPantalla('pantalla-perfiles');
+        }
+    });
 });
 
-function mostrarPantalla(id) { document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa')); document.getElementById(id).classList.add('activa'); }
-function mostrarLoginProfesor() { document.getElementById('password-profe').value = ''; mostrarPantalla('pantalla-login'); }
-function mostrarLoginPadres() { document.getElementById('password-padres').value = ''; mostrarPantalla('pantalla-login-padres'); }
-function volverAPerfiles() { mostrarPantalla('pantalla-perfiles'); }
-function entrarComoPadre() { if(document.getElementById('password-padres').value === configApp.passPadres) { esProfesor = false; iniciarApp(); } else { alert("Contraseña incorrecta."); } }
-function entrarComoProfesor() { if(document.getElementById('password-profe').value === configApp.passProfe) { esProfesor = true; iniciarApp(); } else { alert("Contraseña incorrecta"); } }
+document.getElementById('form-login').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email-login').value;
+    const pass = document.getElementById('password-login').value;
+    const errorMsg = document.getElementById('error-login');
+    errorMsg.classList.add('sr-only');
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.innerText = "Cargando..."; btn.disabled = true;
 
+    try {
+        await window.signInWithEmailAndPassword(window.auth, email, pass);
+        // Si va bien, el onAuthStateChanged de arriba toma el control
+    } catch (error) {
+        errorMsg.classList.remove('sr-only');
+        document.getElementById('anuncios-accesibilidad').innerText = "El acceso no es correcto. Inténtalo de nuevo.";
+    } finally {
+        btn.innerText = "Entrar"; btn.disabled = false;
+    }
+});
+
+window.cerrarSesion = async function() { 
+    audioReal.pause(); document.getElementById('reproductor').style.display = 'none'; 
+    await window.signOut(window.auth);
+}
+
+// INICIAR LA APP PRINCIPAL
 function iniciarApp() {
     mostrarPantalla('pantalla-app');
-    document.getElementById('btn-subir').style.display = esProfesor ? 'block' : 'none';
-    document.getElementById('btn-ajustes').style.display = esProfesor ? 'block' : 'none';
+    document.getElementById('btn-subir').style.display = (rolActual === 'profesor') ? 'block' : 'none';
     cambiarSeccion('Ratonera FM');
 }
 
-function cerrarSesion() { 
-    audioReal.pause(); 
-    document.getElementById('reproductor').style.display = 'none'; 
-    cerrarModalAjustes(); 
-    volverAPerfiles(); 
-}
-
-async function cambiarSeccion(seccion) {
+// CARGAR SECCIÓN
+window.cambiarSeccion = async function(seccion) {
     document.getElementById('titulo-seccion').innerText = seccion;
     document.querySelectorAll('.tab').forEach(tab => { tab.classList.remove('activo'); if(tab.innerText.includes(seccion)) tab.classList.add('activo'); });
     
     document.getElementById('btn-aleatorio-lista').style.display = (seccion === 'Hits') ? 'block' : 'none';
     const contenedor = document.getElementById('lista-reproduccion');
-    contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Buscando episodios...</p>'; 
+    contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px; grid-column: 1 / -1;">Buscando episodios...</p>'; 
 
     try {
         const querySnapshot = await window.getDocs(window.collection(window.db, "episodios"));
         episodiosBrutos = [];
         querySnapshot.forEach((doc) => { const audio = doc.data(); audio.id = doc.id; if (audio.seccion === seccion) episodiosBrutos.push(audio); });
         renderizarLista();
-    } catch (error) { contenedor.innerHTML = '<p style="text-align:center; color: red;">Error conectando a Firebase.</p>'; }
+    } catch (error) { contenedor.innerHTML = '<p style="text-align:center; color: red; grid-column: 1 / -1;">Error conectando a la base de datos.</p>'; }
 }
 
 function renderizarLista() {
@@ -79,12 +102,11 @@ function renderizarLista() {
     contenedor.innerHTML = '';
     
     if (episodiosBrutos.length === 0) {
-        contenedor.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top:20px;">Aún no hay episodios subidos aquí.</p>';
+        contenedor.innerHTML = '<div style="text-align:center; color: var(--text-sub); margin-top:40px; grid-column: 1 / -1;"><i class="fas fa-box-open" style="font-size:40px; margin-bottom:15px;"></i><p>Aún no hay episodios subidos aquí.</p></div>';
         return;
     }
 
     const idSonando = listaAudiosActual[indiceAudioActual]?.id;
-
     listaAudiosActual = [...episodiosBrutos];
     listaAudiosActual.sort((a, b) => {
         const timeA = a.timestamp || 0; const timeB = b.timestamp || 0;
@@ -94,33 +116,39 @@ function renderizarLista() {
     if (idSonando) { indiceAudioActual = listaAudiosActual.findIndex(a => a.id === idSonando); }
 
     const btnOrden = document.getElementById('btn-ordenar');
-    btnOrden.innerHTML = ordenReciente ? '<i class="fas fa-sort-amount-down"></i> Más recientes' : '<i class="fas fa-sort-amount-up"></i> Más antiguos';
+    btnOrden.innerHTML = ordenReciente ? '<i class="fas fa-sort-amount-down" aria-hidden="true"></i> Más recientes' : '<i class="fas fa-sort-amount-up" aria-hidden="true"></i> Más antiguos';
 
     let misLikes = JSON.parse(localStorage.getItem('ratify_likes') || "{}");
 
     listaAudiosActual.forEach((audio, index) => {
-        const item = document.createElement('div');
+        const item = document.createElement('button');
         item.className = 'item-audio';
+        item.setAttribute('aria-label', `Reproducir ${audio.titulo}`);
+        
         const portadaUrl = audio.url_portada || 'https://via.placeholder.com/150/181818/1DB954?text=Ratify';
         const esNuevo = audio.timestamp && (Date.now() - audio.timestamp) < (7 * 24 * 60 * 60 * 1000);
         const badgeHtml = esNuevo ? `<span class="badge-nuevo">NUEVO</span>` : '';
         const tieneLike = misLikes[audio.id];
         const iconHeart = tieneLike ? 'fas' : 'far'; const colorHeart = tieneLike ? '#ff4d4d' : 'var(--text-sub)'; const numLikes = audio.likes || 0;
 
-        let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;"></i>`;
-        if(esProfesor) { controlesHtml = `<i class="fas fa-trash trash-btn" onclick="event.stopPropagation(); borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}')"></i>` + controlesHtml; }
+        let controlesHtml = `<i class="fas fa-play" style="color: var(--spotify-green); font-size: 20px;" aria-hidden="true"></i>`;
+        
+        // Solo el profesor ve la papelera
+        if(rolActual === 'profesor') { 
+            controlesHtml = `<button class="trash-btn" onclick="borrarEpisodio('${audio.id}', '${audio.url_audio}', '${audio.url_portada}', event)" aria-label="Borrar episodio"><i class="fas fa-trash" aria-hidden="true"></i></button>` + controlesHtml; 
+        }
 
         item.innerHTML = `
-            <img src="${portadaUrl}" loading="lazy" alt="Portada" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;">
-            <div style="flex-grow: 1; overflow:hidden; padding-right:10px;">
+            <img src="${portadaUrl}" loading="lazy" alt="" style="width:50px; height:50px; border-radius:5px; margin-right:15px; object-fit:cover;" aria-hidden="true">
+            <div style="flex-grow: 1; overflow:hidden; padding-right:10px; text-align: left;">
                 <h4 style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; display:flex; align-items:center;">${audio.titulo} ${badgeHtml}</h4>
                 <p>${audio.fecha}</p>
             </div>
             <div style="display:flex; align-items:center; gap: 15px;">
-                <div class="btn-like" style="display:flex; flex-direction:column; align-items:center; min-width:25px;" onclick="darLike('${audio.id}', event)">
-                    <i class="${iconHeart} fa-heart" style="color: ${colorHeart}; font-size: 18px;"></i>
+                <button class="btn-like" style="display:flex; flex-direction:column; align-items:center; min-width:25px;" onclick="darLike('${audio.id}', event)" aria-label="Me gusta">
+                    <i class="${iconHeart} fa-heart" style="color: ${colorHeart}; font-size: 18px;" aria-hidden="true"></i>
                     <span style="font-size:10px; color:var(--text-sub); margin-top:3px;">${numLikes}</span>
-                </div>
+                </button>
                 ${controlesHtml}
             </div>
         `;
@@ -129,22 +157,22 @@ function renderizarLista() {
     });
 }
 
-function toggleOrden() { ordenReciente = !ordenReciente; renderizarLista(); }
-
-function toggleAleatorio() {
+// FUNCIONES SECUNDARIAS REPRODUCTOR
+window.toggleOrden = function() { ordenReciente = !ordenReciente; renderizarLista(); }
+window.toggleAleatorio = function() {
     modoAleatorio = !modoAleatorio;
     const btnLista = document.getElementById('btn-aleatorio-lista');
     const btnPlayer = document.getElementById('btn-aleatorio-player');
-    
     if(modoAleatorio) {
-        if(btnLista) btnLista.classList.add('activo');
-        if(btnPlayer) { btnPlayer.style.color = "var(--spotify-green)"; btnPlayer.style.textShadow = "0 0 10px rgba(29, 185, 84, 0.5)"; }
+        if(btnLista) { btnLista.classList.add('activo'); btnLista.setAttribute('aria-pressed', 'true'); }
+        if(btnPlayer) { btnPlayer.style.color = "var(--spotify-green)"; btnPlayer.setAttribute('aria-pressed', 'true'); }
     } else {
-        if(btnLista) btnLista.classList.remove('activo');
-        if(btnPlayer) { btnPlayer.style.color = "var(--text-sub)"; btnPlayer.style.textShadow = "none"; }
+        if(btnLista) { btnLista.classList.remove('activo'); btnLista.setAttribute('aria-pressed', 'false'); }
+        if(btnPlayer) { btnPlayer.style.color = "var(--text-sub)"; btnPlayer.setAttribute('aria-pressed', 'false'); }
     }
 }
 
+// CORAZONES
 function lanzarLluviaDeCorazones() {
     const numCorazones = 20; 
     for(let i = 0; i < numCorazones; i++) {
@@ -159,7 +187,7 @@ function lanzarLluviaDeCorazones() {
     }
 }
 
-async function darLike(id, event) {
+window.darLike = async function(id, event) {
     event.stopPropagation(); const cajaLike = event.currentTarget; const icono = cajaLike.querySelector('i'); const contador = cajaLike.querySelector('span');
     let misLikes = JSON.parse(localStorage.getItem('ratify_likes') || "{}"); let delta = 1;
     
@@ -169,21 +197,24 @@ async function darLike(id, event) {
         misLikes[id] = true; delta = 1; icono.className = "fas fa-heart"; icono.style.color = "#ff4d4d"; 
         lanzarLluviaDeCorazones();
     }
-    
     localStorage.setItem('ratify_likes', JSON.stringify(misLikes));
     contador.innerText = (parseInt(contador.innerText) || 0) + delta;
     try { await window.updateDoc(window.doc(window.db, "episodios", id), { likes: window.increment(delta) }); } catch(e) {}
 }
 
-async function borrarEpisodio(id, urlAudio, urlPortada) {
+window.borrarEpisodio = async function(id, urlAudio, urlPortada, event) {
+    event.stopPropagation();
     if(!confirm("¿Seguro que quieres eliminar este episodio permanentemente?")) return;
-    try { await window.deleteDoc(window.doc(window.db, "episodios", id));
+    try { 
+        await window.deleteDoc(window.doc(window.db, "episodios", id));
         if(urlAudio) { try { await window.deleteObject(window.ref(window.storage, urlAudio)); } catch(e){} }
         if(urlPortada) { try { await window.deleteObject(window.ref(window.storage, urlPortada)); } catch(e){} }
-        alert("Episodio borrado."); cambiarSeccion(document.getElementById('titulo-seccion').innerText);
+        document.getElementById('anuncios-accesibilidad').innerText = "Episodio borrado.";
+        cambiarSeccion(document.getElementById('titulo-seccion').innerText);
     } catch(error) { alert("Error al borrar."); }
 }
 
+// REPRODUCTOR
 function formatearTiempo(segundos) { if (isNaN(segundos)) return "0:00"; const min = Math.floor(segundos / 60); const seg = Math.floor(segundos % 60); return `${min}:${seg < 10 ? '0' : ''}${seg}`; }
 audioReal.addEventListener('loadedmetadata', () => { barraProgreso.max = audioReal.duration; tiempoTotalText.innerText = formatearTiempo(audioReal.duration); });
 audioReal.addEventListener('timeupdate', () => { barraProgreso.value = audioReal.currentTime; tiempoActualText.innerText = formatearTiempo(audioReal.currentTime); });
@@ -200,60 +231,75 @@ function reproducirAudio(indice) {
     audioReal.src = audio.url_audio; audioReal.play(); actualizarBotonesPlay(true);
 }
 
-function togglePlay() { if(!audioReal.src) return; if (audioReal.paused) { audioReal.play(); actualizarBotonesPlay(true); } else { audioReal.pause(); actualizarBotonesPlay(false); } }
+window.togglePlay = function() { if(!audioReal.src) return; if (audioReal.paused) { audioReal.play(); actualizarBotonesPlay(true); } else { audioReal.pause(); actualizarBotonesPlay(false); } }
 function actualizarBotonesPlay(reproduciendo) {
-    document.querySelectorAll('.play-btn').forEach(icono => {
+    document.querySelectorAll('.play-btn i').forEach(icono => {
         if (reproduciendo) { icono.classList.remove('fa-play-circle'); icono.classList.add('fa-pause-circle'); } 
         else { icono.classList.remove('fa-pause-circle'); icono.classList.add('fa-play-circle'); }
     });
 }
 
-function playSiguiente() { 
+window.playSiguiente = function() { 
     if (modoAleatorio && listaAudiosActual.length > 1) {
-        let nuevoIndice;
-        do { nuevoIndice = Math.floor(Math.random() * listaAudiosActual.length); } while (nuevoIndice === indiceAudioActual);
-        reproducirAudio(nuevoIndice);
-    } else if (indiceAudioActual < listaAudiosActual.length - 1) {
-        reproducirAudio(indiceAudioActual + 1);
-    } 
+        let nuevoIndice; do { nuevoIndice = Math.floor(Math.random() * listaAudiosActual.length); } while (nuevoIndice === indiceAudioActual); reproducirAudio(nuevoIndice);
+    } else if (indiceAudioActual < listaAudiosActual.length - 1) { reproducirAudio(indiceAudioActual + 1); } 
 }
-function playAnterior() { if (indiceAudioActual > 0) reproducirAudio(indiceAudioActual - 1); }
+window.playAnterior = function() { if (indiceAudioActual > 0) reproducirAudio(indiceAudioActual - 1); }
 audioReal.onended = playSiguiente;
 
-function abrirReproductorCompleto() { document.getElementById('reproductor-completo').classList.add('activa'); }
-function cerrarReproductorCompleto() { document.getElementById('reproductor-completo').classList.remove('activa'); }
-function abrirModalSubida() { document.getElementById('modal-subida').style.display = 'flex'; }
-function cerrarModalSubida() { document.getElementById('modal-subida').style.display = 'none'; }
+window.abrirReproductorCompleto = function() { document.getElementById('reproductor-completo').classList.add('activa'); }
+window.cerrarReproductorCompleto = function() { document.getElementById('reproductor-completo').classList.remove('activa'); }
+window.abrirModalSubida = function() { document.getElementById('modal-subida').style.display = 'flex'; }
+window.cerrarModalSubida = function() { document.getElementById('modal-subida').style.display = 'none'; }
 
-async function ejecutarSubida() {
-    const titulo = document.getElementById('upload-titulo').value; const seccion = document.getElementById('upload-seccion').value;
-    const archivoAudio = document.getElementById('upload-audio').files[0]; const archivoPortada = document.getElementById('upload-portada').files[0];
-    if(!titulo || !archivoAudio) { alert("El título y el audio son obligatorios."); return; }
+// FORMULARIO DE SUBIDA SEGURO
+document.getElementById('form-subida').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titulo = document.getElementById('upload-titulo').value.trim(); 
+    const seccion = document.getElementById('upload-seccion').value;
+    const archivoAudio = document.getElementById('upload-audio').files[0]; 
+    const archivoPortada = document.getElementById('upload-portada').files[0];
+    const errorMsg = document.getElementById('error-subida');
+    
+    errorMsg.classList.add('sr-only');
+
+    if(!titulo || !archivoAudio) return;
+    
+    // Validación de peso (Máximo 50MB Audio, 5MB Imagen)
+    if (archivoAudio.size > 50 * 1024 * 1024) { errorMsg.innerText = "El audio es demasiado grande (máx 50MB)."; errorMsg.classList.remove('sr-only'); return; }
+    if (archivoPortada && archivoPortada.size > 5 * 1024 * 1024) { errorMsg.innerText = "La portada es demasiado grande (máx 5MB)."; errorMsg.classList.remove('sr-only'); return; }
     
     const btn = document.getElementById('btn-ejecutar-subida'); btn.innerText = "Subiendo... paciencia"; btn.disabled = true;
+    
     try {
         const audioRef = window.ref(window.storage, 'audios/' + Date.now() + '_' + archivoAudio.name);
-        await window.uploadBytes(audioRef, archivoAudio); const urlAudio = await window.getDownloadURL(audioRef);
+        // Usamos uploadBytesResumable para mejor estabilidad en archivos grandes
+        const uploadTask = window.uploadBytesResumable(audioRef, archivoAudio);
         
-        let urlPortada = "";
-        if(archivoPortada) {
-            const portadaRef = window.ref(window.storage, 'portadas/' + Date.now() + '_' + archivoPortada.name);
-            await window.uploadBytes(portadaRef, archivoPortada); urlPortada = await window.getDownloadURL(portadaRef);
-        }
-        const fechaHoy = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-        await window.addDoc(window.collection(window.db, "episodios"), { titulo: titulo, seccion: seccion, url_audio: urlAudio, url_portada: urlPortada, fecha: fechaHoy, timestamp: Date.now(), likes: 0 });
-        alert("¡Episodio subido!"); document.getElementById('upload-titulo').value = ''; cerrarModalSubida(); cambiarSeccion(seccion);
-    } catch (e) { alert("Error al subir"); } finally { btn.innerText = "Subir a Firebase"; btn.disabled = false; }
-}
-
-function abrirModalAjustes() { 
-    document.getElementById('ajuste-nombre-profe').value = configApp.nombreProfe; document.getElementById('ajuste-img-profe').value = configApp.imgProfe; document.getElementById('ajuste-pass-profe').value = configApp.passProfe;
-    document.getElementById('ajuste-nombre-padres').value = configApp.nombrePadres; document.getElementById('ajuste-img-padres').value = configApp.imgPadres; document.getElementById('ajuste-pass-padres').value = configApp.passPadres;
-    document.getElementById('modal-ajustes').style.display = 'flex'; 
-}
-function cerrarModalAjustes() { document.getElementById('modal-ajustes').style.display = 'none'; }
-async function guardarConfiguracion() {
-    const btn = document.getElementById('btn-guardar-ajustes'); btn.innerText = "Guardando..."; btn.disabled = true;
-    const nuevaConfig = { nombreProfe: document.getElementById('ajuste-nombre-profe').value, imgProfe: document.getElementById('ajuste-img-profe').value, passProfe: document.getElementById('ajuste-pass-profe').value, nombrePadres: document.getElementById('ajuste-nombre-padres').value, imgPadres: document.getElementById('ajuste-img-padres').value, passPadres: document.getElementById('ajuste-pass-padres').value };
-    try { await window.setDoc(window.doc(window.db, "configuracion", "general"), nuevaConfig); alert("Ajustes guardados."); cerrarModalAjustes(); window.location.reload(); } catch(e) { alert("Error al guardar"); } finally { btn.innerText = "Guardar Cambios"; btn.disabled = false; }
-}
+        uploadTask.on('state_changed', 
+            (snapshot) => {}, 
+            (error) => { throw error; }, 
+            async () => {
+                const urlAudio = await window.getDownloadURL(uploadTask.snapshot.ref);
+                let urlPortada = "";
+                
+                if(archivoPortada) {
+                    const portadaRef = window.ref(window.storage, 'portadas/' + Date.now() + '_' + archivoPortada.name);
+                    await window.uploadBytesResumable(portadaRef, archivoPortada); 
+                    urlPortada = await window.getDownloadURL(portadaRef);
+                }
+                
+                const fechaHoy = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                await window.addDoc(window.collection(window.db, "episodios"), { titulo: titulo, seccion: seccion, url_audio: urlAudio, url_portada: urlPortada, fecha: fechaHoy, timestamp: Date.now(), likes: 0 });
+                
+                document.getElementById('anuncios-accesibilidad').innerText = "¡Episodio subido con éxito!";
+                document.getElementById('form-subida').reset(); 
+                cerrarModalSubida(); cambiarSeccion(seccion);
+                btn.innerText = "Subir Episodio"; btn.disabled = false;
+            }
+        );
+    } catch (e) { 
+        errorMsg.innerText = "Error de red al subir."; errorMsg.classList.remove('sr-only');
+        btn.innerText = "Subir Episodio"; btn.disabled = false;
+    }
+});

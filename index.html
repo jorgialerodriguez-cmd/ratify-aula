@@ -5,54 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ratify - Tu app de aula</title>
     
-    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <link rel="apple-touch-icon" href="logo.jpeg">
-
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- NUEVO: PANTALLA DE BIENVENIDA (RATÓN GIGANTE) -->
+    <!-- Avisos para lectores de pantalla (Accesibilidad) -->
+    <div id="anuncios-accesibilidad" aria-live="polite" class="sr-only"></div>
+
+    <!-- PANTALLA DE BIENVENIDA (RATÓN) -->
     <div id="pantalla-bienvenida">
-        <img src="raton.png" alt="Ratón saludando" class="raton-gigante">
+        <img src="raton.png" alt="" class="raton-gigante" aria-hidden="true">
         <div class="mensaje-bienvenida">¡Hola, familias!</div>
     </div>
 
-    <!-- Pantalla 1: Perfiles -->
-    <div id="pantalla-perfiles" class="pantalla activa">
+    <!-- PANTALLA 1: PERFILES -->
+    <div id="pantalla-perfiles" class="pantalla activa" role="main">
         <h1 style="font-size: 32px; text-align: center; margin-bottom: 40px;">¿Quién está escuchando?</h1>
         <div class="perfiles-container">
-            <div class="perfil" onclick="mostrarLoginProfesor()">
-                <img id="img-profe-ui" src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="Profesor">
-                <p id="nombre-profe-ui">Profesor</p>
-            </div>
-            <div class="perfil" onclick="mostrarLoginPadres()">
-                <img id="img-padres-ui" src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="Padres">
-                <p id="nombre-padres-ui">Familia</p>
-            </div>
+            <button id="btn-acceso-profe" class="perfil" aria-label="Acceder como Profesor. Gestiona episodios y configuración." onclick="mostrarLogin('profesor')">
+                <img src="https://ui-avatars.com/api/?name=Profe&background=1DB954&color=fff&size=150" alt="" aria-hidden="true">
+                <h2>Profesor</h2>
+                <p class="perfil-desc">Gestiona los episodios</p>
+            </button>
+            <button id="btn-acceso-familias" class="perfil" aria-label="Acceder como Familias. Escucha los episodios publicados." onclick="mostrarLogin('familia')">
+                <img src="https://ui-avatars.com/api/?name=Familia&background=181818&color=1DB954&size=150" alt="" aria-hidden="true">
+                <h2>Familias</h2>
+                <p class="perfil-desc">Escucha a los ratones</p>
+            </button>
         </div>
     </div>
 
-    <!-- Pantalla 2A: Login Profesor -->
-    <div id="pantalla-login" class="pantalla">
-        <h2 id="titulo-login-profe">Acceso Profesor</h2>
-        <input type="password" id="password-profe" placeholder="Contraseña">
-        <button onclick="entrarComoProfesor()">Entrar</button>
-        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+    <!-- PANTALLA 2: LOGIN -->
+    <div id="pantalla-login" class="pantalla" role="region" aria-labelledby="titulo-login">
+        <h2 id="titulo-login">Acceso</h2>
+        <form id="form-login" novalidate style="width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center;">
+            <div class="form-group">
+                <label for="email-login">Correo electrónico</label>
+                <input type="email" id="email-login" autocomplete="username" required aria-required="true">
+            </div>
+            <div class="form-group">
+                <label for="password-login">Contraseña</label>
+                <input type="password" id="password-login" autocomplete="current-password" required aria-required="true">
+            </div>
+            <div id="error-login" class="error-msg sr-only" aria-live="assertive">El acceso no es correcto. Inténtalo de nuevo.</div>
+            <button type="submit" class="btn-primario">Entrar</button>
+            <button type="button" class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
+        </form>
     </div>
 
-    <!-- Pantalla 2B: Login Familias -->
-    <div id="pantalla-login-padres" class="pantalla">
-        <h2 id="titulo-login-padres">Acceso Familias</h2>
-        <input type="password" id="password-padres" placeholder="Contraseña">
-        <button onclick="entrarComoPadre()">Entrar</button>
-        <button class="btn-secundario" onclick="volverAPerfiles()">Cancelar</button>
-    </div>
-
-    <!-- Pantalla 3: App Principal -->
+    <!-- PANTALLA 3: APP PRINCIPAL -->
     <div id="pantalla-app" class="pantalla">
         <header>
             <div style="display:flex; align-items:center; gap: 10px;">
@@ -60,19 +65,19 @@
                 <h2 id="titulo-seccion" style="margin:0;">Ratonera FM</h2>
             </div>
             <div style="display:flex; align-items:center; gap: 10px;">
-                <button id="btn-subir" style="display: none;" onclick="abrirModalSubida()"><i class="fas fa-plus"></i></button>
-                <button id="btn-ajustes" style="display: none; background: transparent; padding: 5px; width: auto;" onclick="abrirModalAjustes()"><i class="fas fa-cog" style="color: var(--text-sub); font-size: 20px;"></i></button>
+                <button id="btn-subir" class="btn-icon" style="display: none;" aria-label="Subir episodio" title="Subir episodio" onclick="abrirModalSubida()"><i class="fas fa-plus" aria-hidden="true"></i></button>
+                <button id="btn-cerrar-sesion" class="btn-icon" aria-label="Cerrar sesión" title="Cerrar sesión" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>
             </div>
         </header>
 
         <div id="barra-controles" style="display: flex; justify-content: space-between; padding: 0 15px 10px 15px;">
-            <button id="btn-ordenar" onclick="toggleOrden()" class="btn-filtro"><i class="fas fa-sort-amount-down"></i> Más recientes</button>
-            <button id="btn-aleatorio-lista" onclick="toggleAleatorio()" class="btn-filtro" style="display: none;"><i class="fas fa-random"></i> Aleatorio</button>
+            <button id="btn-ordenar" onclick="toggleOrden()" class="btn-filtro" aria-label="Cambiar orden de episodios"><i class="fas fa-sort-amount-down" aria-hidden="true"></i> Más recientes</button>
+            <button id="btn-aleatorio-lista" onclick="toggleAleatorio()" class="btn-filtro" style="display: none;" aria-pressed="false"><i class="fas fa-random" aria-hidden="true"></i> Aleatorio</button>
         </div>
 
-        <main id="lista-reproduccion"></main>
+        <main id="lista-reproduccion" aria-label="Lista de episodios"></main>
 
-        <div id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()">
+        <button id="reproductor" style="display: none;" onclick="abrirReproductorCompleto()" aria-label="Abrir reproductor a pantalla completa">
             <div class="info-pista">
                 <img id="mini-cover" src="" alt="" class="portada-cancion" style="object-fit: cover;">
                 <div class="textos-cancion">
@@ -81,92 +86,82 @@
                 </div>
             </div>
             <div class="controles-player" onclick="event.stopPropagation()">
-                <i class="fas fa-play-circle play-btn mini-btn-play" onclick="togglePlay()"></i>
+                <i class="fas fa-play-circle play-btn mini-btn-play" aria-hidden="true" onclick="togglePlay()" aria-label="Reproducir o Pausar"></i>
             </div>
-        </div>
+        </button>
 
-        <nav id="menu-inferior">
-            <div class="tab activo" onclick="cambiarSeccion('Ratonera FM')"><i class="fas fa-podcast"></i><span>Ratonera FM</span></div>
-            <div class="tab" onclick="cambiarSeccion('Hits')"><i class="fas fa-compact-disc"></i><span>Hits</span></div>
-            <div class="tab" onclick="cambiarSeccion('Episodios Especiales')"><i class="fas fa-star"></i><span>Especiales</span></div>
+        <nav id="menu-inferior" aria-label="Navegación principal">
+            <button class="tab activo" onclick="cambiarSeccion('Ratonera FM')"><i class="fas fa-podcast" aria-hidden="true"></i><span>Ratonera FM</span></button>
+            <button class="tab" onclick="cambiarSeccion('Hits')"><i class="fas fa-compact-disc" aria-hidden="true"></i><span>Hits</span></button>
+            <button class="tab" onclick="cambiarSeccion('Episodios Especiales')"><i class="fas fa-star" aria-hidden="true"></i><span>Especiales</span></button>
         </nav>
     </div>
 
-    <!-- Pantalla 4: Reproductor Completo -->
-    <div id="reproductor-completo" class="pantalla">
-        <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()"><i class="fas fa-chevron-down"></i></button>
-        <img id="full-cover" src="" alt="Portada">
-        <h2 id="full-title">Título</h2>
+    <!-- PANTALLA 4: REPRODUCTOR COMPLETO -->
+    <div id="reproductor-completo" class="pantalla" role="region" aria-label="Reproductor de audio a pantalla completa">
+        <button class="btn-cerrar-player" onclick="cerrarReproductorCompleto()" aria-label="Cerrar reproductor"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+        <img id="full-cover" src="" alt="Portada del episodio">
+        <h2 id="full-title" aria-live="polite">Título</h2>
         <p id="full-date">Fecha</p>
         
         <div class="progreso-container">
-            <span id="tiempo-actual">0:00</span>
+            <span id="tiempo-actual" aria-label="Tiempo transcurrido">0:00</span>
+            <label for="barra-progreso" class="sr-only">Control de progreso de audio</label>
             <input type="range" id="barra-progreso" value="0" min="0" step="1">
-            <span id="tiempo-total">0:00</span>
+            <span id="tiempo-total" aria-label="Duración total">0:00</span>
         </div>
 
         <div class="controles-grandes">
-            <i class="fas fa-random" id="btn-aleatorio-player" onclick="toggleAleatorio()" style="font-size: 20px; color: var(--text-sub); transition: 0.2s;"></i>
-            <i class="fas fa-step-backward" onclick="playAnterior()"></i>
-            <i class="fas fa-play-circle play-btn full-btn-play" onclick="togglePlay()"></i>
-            <i class="fas fa-step-forward" onclick="playSiguiente()"></i>
-            <i class="fas fa-redo" style="font-size: 20px; color: transparent;"></i>
+            <button id="btn-aleatorio-player" aria-label="Activar modo aleatorio" title="Aleatorio" onclick="toggleAleatorio()" style="color: var(--text-sub);"><i class="fas fa-random" aria-hidden="true"></i></button>
+            <button aria-label="Anterior" onclick="playAnterior()"><i class="fas fa-step-backward" aria-hidden="true"></i></button>
+            <button class="play-btn full-btn-play" aria-label="Reproducir o Pausar" onclick="togglePlay()"><i class="fas fa-play-circle" aria-hidden="true" style="color: var(--spotify-green);"></i></button>
+            <button aria-label="Siguiente" onclick="playSiguiente()"><i class="fas fa-step-forward" aria-hidden="true"></i></button>
+            <button aria-label="Repetir" disabled style="color: transparent;"><i class="fas fa-redo" aria-hidden="true"></i></button>
         </div>
     </div>
 
-    <!-- Modal Subida -->
-    <div id="modal-subida" class="modal">
+    <!-- MODAL SUBIDA -->
+    <div id="modal-subida" class="modal" role="dialog" aria-labelledby="titulo-subida">
         <div class="modal-contenido">
-            <h3>Subir Nuevo Episodio</h3>
-            <input type="text" id="upload-titulo" placeholder="Título del episodio">
-            <select id="upload-seccion">
-                <option value="Ratonera FM">Ratonera FM</option>
-                <option value="Hits">Hits</option>
-                <option value="Episodios Especiales">Episodios Especiales</option>
-            </select>
-            <label>Audio (.mp3 o .m4a):</label>
-            <input type="file" id="upload-audio" accept="audio/*">
-            <label>Portada (Imagen):</label>
-            <input type="file" id="upload-portada" accept="image/*">
-            <button onclick="ejecutarSubida()" id="btn-ejecutar-subida">Subir a Firebase</button>
-            <button class="btn-secundario" onclick="cerrarModalSubida()">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Modal Ajustes -->
-    <div id="modal-ajustes" class="modal">
-        <div class="modal-contenido" style="max-height: 80vh; overflow-y: auto;">
-            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:15px;">
-                <h3 style="margin:0;"><i class="fas fa-cog"></i> Ajustes</h3>
-                <button class="btn-secundario" style="width:auto; padding:5px 10px; margin:0;" onclick="cerrarSesion()">Cerrar sesión</button>
-            </div>
-            
-            <label>Nombre Perfil Profe:</label>
-            <input type="text" id="ajuste-nombre-profe">
-            <label>URL Imagen Profe:</label>
-            <input type="text" id="ajuste-img-profe">
-            <label>Contraseña Profe:</label>
-            <input type="text" id="ajuste-pass-profe">
-            <hr style="border-color: #282828; margin: 15px 0;">
-            <label>Nombre Perfil Familias:</label>
-            <input type="text" id="ajuste-nombre-padres">
-            <label>URL Imagen Familias:</label>
-            <input type="text" id="ajuste-img-padres">
-            <label>Contraseña Familias:</label>
-            <input type="text" id="ajuste-pass-padres">
-
-            <button onclick="guardarConfiguracion()" id="btn-guardar-ajustes" style="margin-top:15px;">Guardar Cambios</button>
-            <button class="btn-secundario" onclick="cerrarModalAjustes()">Cancelar</button>
+            <h3 id="titulo-subida">Publicar Episodio</h3>
+            <form id="form-subida" novalidate>
+                <div class="form-group">
+                    <label for="upload-titulo">Título del episodio <span aria-hidden="true">*</span></label>
+                    <input type="text" id="upload-titulo" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="upload-seccion">Sección <span aria-hidden="true">*</span></label>
+                    <select id="upload-seccion" required aria-required="true">
+                        <option value="Ratonera FM">Ratonera FM</option>
+                        <option value="Hits">Hits</option>
+                        <option value="Episodios Especiales">Especiales</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="upload-audio">Audio (.mp3, .m4a - máx 50MB) <span aria-hidden="true">*</span></label>
+                    <input type="file" id="upload-audio" accept="audio/*" required aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="upload-portada">Portada (opcional)</label>
+                    <input type="file" id="upload-portada" accept="image/*">
+                </div>
+                
+                <div id="error-subida" class="error-msg sr-only" aria-live="assertive"></div>
+                
+                <button type="submit" id="btn-ejecutar-subida" class="btn-primario">Subir Episodio</button>
+                <button type="button" class="btn-secundario" onclick="cerrarModalSubida()">Cancelar</button>
+            </form>
         </div>
     </div>
 
     <audio id="audio-elemento"></audio>
     
-    <!-- FIREBASE IMPORTANTE: PEGA TUS CLAVES AQUÍ ABAJO -->
+    <!-- PEGA TUS CLAVES DE FIREBASE AQUÍ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, setDoc, updateDoc, increment, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
       
         const firebaseConfig = {
           apiKey: "TU_API_KEY",
@@ -180,11 +175,13 @@
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.storage = getStorage(app);
+        window.auth = getAuth(app);
         
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword; window.signOut = signOut; window.onAuthStateChanged = onAuthStateChanged;
         window.collection = collection; window.getDocs = getDocs; window.addDoc = addDoc;
         window.doc = doc; window.deleteDoc = deleteDoc; window.getDoc = getDoc; window.setDoc = setDoc;
         window.updateDoc = updateDoc; window.increment = increment;
-        window.ref = ref; window.uploadBytes = uploadBytes; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
+        window.ref = ref; window.uploadBytesResumable = uploadBytesResumable; window.getDownloadURL = getDownloadURL; window.deleteObject = deleteObject;
     </script>
     <script src="app.js"></script>
 </body>
